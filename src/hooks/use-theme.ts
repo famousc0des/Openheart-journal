@@ -2,19 +2,26 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { hexToRgba } from '@/lib/color';
 import { useScalar } from '@/lib/scalar-store';
-import { accentOverrideStore } from '@/lib/stores';
+import { accentOverrideStore, themePreferenceStore } from '@/lib/stores';
+
+export function useThemeScheme(): 'light' | 'dark' {
+  const preference = useScalar(themePreferenceStore);
+  const system = useColorScheme();
+  if (preference === 'light' || preference === 'dark') return preference;
+  return system === 'dark' ? 'dark' : 'light';
+}
 
 export function useTheme() {
-  const scheme = useColorScheme();
+  const scheme = useThemeScheme();
   const accentOverride = useScalar(accentOverrideStore);
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
-  const base = Colors[theme];
+  const base = Colors[scheme];
 
   if (!accentOverride) return base;
 
   return {
     ...base,
     accent: accentOverride,
-    accentSoft: hexToRgba(accentOverride, theme === 'dark' ? 0.28 : 0.16),
+    accentSoft: hexToRgba(accentOverride, 0.12),
+    primary: accentOverride,
   };
 }

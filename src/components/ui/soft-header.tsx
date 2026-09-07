@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { HairlineBorder, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function CircleIconButton({
@@ -17,7 +17,7 @@ export function CircleIconButton({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.circle, { backgroundColor: theme.backgroundElement }]}
+      style={[styles.circle, HairlineBorder, { backgroundColor: theme.softFill, borderColor: theme.border }]}
       hitSlop={8}>
       <Ionicons name={icon} size={19} color={theme.text} />
     </Pressable>
@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.three,
+    paddingTop: 2,
+    paddingBottom: Spacing.one,
     gap: Spacing.two,
   },
   circle: {
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 16,
+    lineHeight: 24,
   },
   right: {
     minWidth: 40,

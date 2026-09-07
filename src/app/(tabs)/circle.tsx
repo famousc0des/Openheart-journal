@@ -1,236 +1,226 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { Screen } from '@/components/ui/screen';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { JournalAvatar, JournalBlob, JOURNAL_BLOB_COLORS } from '@/components/journal-blob';
+import { Fonts, Tracking } from '@/constants/theme';
+import { CIRCLE_TYPES, ensureDummyMembersForCircles, pastelFor, shareCircleInvite, withBuiltInCircles } from '@/lib/circles';
 import { useCollection } from '@/lib/collection-store';
-import { createId } from '@/lib/id';
-import { circleInviteStore, circleMemberStore } from '@/lib/stores';
-import { CircleGroup, CircleMember } from '@/lib/types';
+import { formatRelative } from '@/lib/date';
+import { churchStore, circleMemberStore, circlesStore } from '@/lib/stores';
+import { UserCircle } from '@/lib/types';
 
-const GROUPS: { key: CircleGroup; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'cord', label: 'Cord', icon: 'link' },
-  { key: 'fellowship', label: 'Fellowship', icon: 'people' },
-];
+const PAGE = 'transparent';
+const INK = '#1C1917';
+const INK_MUTED = 'rgba(28, 25, 23, 0.48)';
 
-const GROUP_GOAL = 10;
+const KIND_STICKERS: Record<
+  NonNullable<UserCircle['kind']>,
+  { name: 'heart' | 'people' | 'sparkles'; bg: string; color: string }[]
+> = {
+  cord: [
+    { name: 'heart', bg: '#F6F3EE', color: INK },
+    { name: 'sparkles', bg: '#1C1917', color: '#F6F3EE' },
+  ],
+  fellowship: [
+    { name: 'people', bg: '#F6F3EE', color: INK },
+    { name: 'heart', bg: '#1C1917', color: '#F6F3EE' },
+  ],
+  custom: [
+    { name: 'sparkles', bg: '#F6F3EE', color: INK },
+  ],
+};
 
-function randomCode(): string {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
+function circleLine(circle: UserCircle, memberCount: number) {
+  const type = CIRCLE_TYPES[circle.kind ?? 'cord'];
+  if (type.limit === null) {
+    return `${memberCount} ${memberCount === 1 ? 'person' : 'people'} in this group.`;
+  }
+  const left = type.limit - memberCount;
+  if (left <= 0) return `${circle.name} is full.`;
+  return left === 1 ? 'One seat still open.' : `${left} seats still open.`;
 }
 
 export default function CircleScreen() {
-  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const circles = useCollection(circlesStore);
   const members = useCollection(circleMemberStore);
-  const invites = useCollection(circleInviteStore);
-  const [draftName, setDraftName] = useState<Record<CircleGroup, string>>({ cord: '', fellowship: '' });
+  const churches = useCollection(churchStore);
+  const displayedCircles = withBuiltInCircles(circles);
 
-  const progress = Math.min(members.length / GROUP_GOAL, 1);
+  useEffect(() => {
+    ensureDummyMembersForCircles(circles);
+  }, [circles, members]);
 
-  function addMember(group: CircleGroup) {
-    const name = draftName[group].trim();
-    if (!name) return;
-    circleMemberStore.add({ id: createId(), createdAt: new Date().toISOString(), name, group });
-    setDraftName((prev) => ({ ...prev, [group]: '' }));
-  }
-
-  function removeMember(member: CircleMember) {
-    Alert.alert('Remove from circle', `Remove ${member.name}? They won't be notified.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => circleMemberStore.remove(member.id) },
-    ]);
-  }
-
-  function invite(group: CircleGroup) {
-    const code = randomCode();
-    circleInviteStore.add({ id: createId(), createdAt: new Date().toISOString(), code, group });
-    Share.share({
-      message: `Join me on Openheart so I can share a few things with you privately. Use invite code ${code} — it expires after one use.`,
-    }).catch(() => {});
-  }
+  let blobIndex = 0;
 
   return (
-    <Screen>
-      <View style={styles.pitchBlock}>
-        <ThemedText type="title" style={styles.pitchTitle}>
-          Invite your people.{'\n'}Share life together.
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.pitchBody}>
-          Add a few close people to Cord, and a wider few to Fellowship. Sharing stays private and
-          per-item — never a public wall.
-        </ThemedText>
-      </View>
-
-      <View style={{ gap: Spacing.two }}>
-        <View style={[styles.progressTrack, { backgroundColor: theme.backgroundElement }]}>
-          <View style={[styles.progressFill, { backgroundColor: theme.accent, width: `${progress * 100}%` }]} />
+    <View style={styles.page}>
+      <ScrollView
+        bounces={false}
+        alwaysBounceVertical={false}
+        overScrollMode="never"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 10, paddingBottom: 128 + insets.bottom },
+        ]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Circle</Text>
+          <Text style={styles.lede}>Notes from the people around you.</Text>
         </View>
-        <View style={styles.progressRow}>
-          <ThemedText type="small" themeColor="textSecondary">
-            {members.length} / {GROUP_GOAL} in your circle
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {invites.length} invite{invites.length === 1 ? '' : 's'} sent
-          </ThemedText>
+
+        <View style={styles.stack}>
+          {displayedCircles.map((circle, index) => {
+            const circleMembers = members.filter((member) => member.circleId === circle.id);
+            const type = CIRCLE_TYPES[circle.kind ?? 'cord'];
+            const face = circleMembers[0];
+            const variant = blobIndex;
+            blobIndex += 1;
+            const canInvite = type.limit === null || circleMembers.length < type.limit;
+            return (
+              <View key={circle.id}>
+                <JournalBlob
+                  color={JOURNAL_BLOB_COLORS[variant % JOURNAL_BLOB_COLORS.length]}
+                  variant={variant}
+                  overlap={index > 0}
+                  avatar={
+                    <JournalAvatar
+                      label={face?.name ?? circle.name}
+                      color={pastelFor(face?.name ?? circle.name)}
+                      icon={face ? undefined : 'person-add-outline'}
+                    />
+                  }
+                  name={circle.name}
+                  time={formatRelative(circle.createdAt)}
+                  body={circleLine(circle, circleMembers.length)}
+                  badge={type.limit === null ? circleMembers.length : `${circleMembers.length}/${type.limit}`}
+                  stickers={KIND_STICKERS[circle.kind ?? 'cord']}
+                  onPress={() => router.push({ pathname: '/circle/[id]', params: { id: circle.id } })}
+                  onStickerPress={() => {
+                    if (!canInvite) return;
+                    void shareCircleInvite(circle);
+                  }}
+                />
+              </View>
+            );
+          })}
+
+          {churches.map((church) => {
+            const variant = blobIndex;
+            blobIndex += 1;
+            return (
+              <View key={church.id}>
+                <JournalBlob
+                  color={JOURNAL_BLOB_COLORS[variant % JOURNAL_BLOB_COLORS.length]}
+                  variant={variant}
+                  avatar={<JournalAvatar color="#F6F3EE" icon="home" />}
+                  name={church.name}
+                  time={formatRelative(church.createdAt)}
+                  body={`Owned by ${church.ownerNames[0]}${church.ownedByMe ? ' (you)' : ''}.`}
+                  badge={church.memberCount}
+                  stickers={[{ name: 'sparkles', bg: '#1C1917', color: '#F6F3EE' }]}
+                  onPress={() => router.push({ pathname: '/church/[id]', params: { id: church.id } })}
+                />
+              </View>
+            );
+          })}
         </View>
-      </View>
 
-      <Pressable onPress={() => invite('fellowship')} style={[styles.shareButton, { backgroundColor: theme.accent }]}>
-        <Ionicons name="share-outline" size={18} color="#fff" />
-        <ThemedText style={styles.shareButtonText}>Share invite</ThemedText>
-      </Pressable>
-
-      {GROUPS.map((group) => {
-        const groupMembers = members.filter((member) => member.group === group.key);
-        return (
-          <View key={group.key} style={{ gap: Spacing.two }}>
-            <View style={styles.sectionHeaderRow}>
-              <ThemedText type="smallBold" style={styles.sectionTitle}>
-                {group.label}
-              </ThemedText>
-              <Pressable onPress={() => invite(group.key)} hitSlop={8}>
-                <Ionicons name="person-add-outline" size={19} color={theme.textSecondary} />
-              </Pressable>
-            </View>
-
-            {groupMembers.length === 0 ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                No one here yet — send an invite or add someone you've already connected with.
-              </ThemedText>
-            ) : (
-              groupMembers.map((member) => (
-                <View key={member.id} style={styles.memberRow}>
-                  <View style={[styles.avatar, { backgroundColor: theme.backgroundElement }]}>
-                    <ThemedText type="smallBold" themeColor="accent">
-                      {member.name.trim().charAt(0).toUpperCase() || '?'}
-                    </ThemedText>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText type="smallBold">{member.name}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {group.label}
-                    </ThemedText>
-                  </View>
-                  <Pressable
-                    onPress={() => removeMember(member)}
-                    style={[styles.removeButton, { borderColor: theme.border }]}>
-                    <ThemedText type="small">Remove</ThemedText>
-                  </Pressable>
-                </View>
-              ))
-            )}
-
-            <View style={styles.addRow}>
-              <TextInput
-                value={draftName[group.key]}
-                onChangeText={(text) => setDraftName((prev) => ({ ...prev, [group.key]: text }))}
-                placeholder={`Add someone to ${group.label}`}
-                placeholderTextColor={theme.textSecondary}
-                onSubmitEditing={() => addMember(group.key)}
-                returnKeyType="done"
-                style={[styles.addInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-              />
-              <Pressable
-                onPress={() => addMember(group.key)}
-                hitSlop={10}
-                style={styles.addButton}>
-                <Ionicons name="add-circle" size={40} color={theme.accent} />
-              </Pressable>
-            </View>
+        <View style={styles.actions}>
+          <Pressable
+            accessibilityLabel="Create a circle"
+            onPress={() => router.push('/circle/new')}
+            style={({ pressed }) => [styles.inkButton, pressed && styles.pressed]}>
+            <Text style={styles.inkLabel}>Create New</Text>
+          </Pressable>
+          <View style={styles.churchActions}>
+            <Pressable
+              onPress={() => router.push('/church/new')}
+              style={({ pressed }) => [styles.ghostButton, pressed && styles.pressed]}>
+              <Text style={styles.ghostLabel}>Start a church</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/church/join')}
+              style={({ pressed }) => [styles.ghostButton, pressed && styles.pressed]}>
+              <Text style={styles.ghostLabel}>Join a church</Text>
+            </Pressable>
           </View>
-        );
-      })}
-    </Screen>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pitchBlock: {
-    alignItems: 'center',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.two,
-  },
-  pitchTitle: {
-    fontSize: 26,
-    lineHeight: 32,
-    textAlign: 'center',
-  },
-  pitchBody: {
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: Radius.pill,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 8,
-    borderRadius: Radius.pill,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: Radius.pill,
-  },
-  shareButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  removeButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-  },
-  addRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  addInput: {
+  page: {
     flex: 1,
-    minHeight: 56,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: 16,
-    fontSize: 16,
+    backgroundColor: PAGE,
   },
-  addButton: {
-    width: 48,
-    height: 48,
+  content: {
+    paddingHorizontal: 16,
+    gap: 18,
+  },
+  header: {
+    gap: 6,
+    paddingHorizontal: 6,
+    paddingBottom: 8,
+  },
+  title: {
+    color: INK,
+    fontFamily: Fonts.bold,
+    fontSize: 34,
+    lineHeight: 46,
+    letterSpacing: Tracking.heading,
+  },
+  lede: {
+    color: INK_MUTED,
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    lineHeight: 22,
+    maxWidth: 280,
+  },
+  stack: {
+    overflow: 'visible',
+  },
+  actions: {
+    gap: 10,
+    marginTop: 8,
+  },
+  inkButton: {
+    minHeight: 56,
+    borderRadius: 28,
+    backgroundColor: INK,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  inkLabel: {
+    color: '#F6F3EE',
+    fontFamily: Fonts.medium,
+    fontSize: 16,
+  },
+  churchActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  ghostButton: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(28, 25, 23, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: PAGE,
+  },
+  ghostLabel: {
+    color: INK,
+    fontFamily: Fonts.medium,
+    fontSize: 14,
+  },
+  pressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.98 }],
   },
 });

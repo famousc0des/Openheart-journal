@@ -30,7 +30,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
         <ThemedText type="small">{title}</ThemedText>
       </Pressable>
       {isOpen && (
-        <Animated.View entering={FadeIn.duration(200)}>
+        <Animated.View entering={FadeIn.duration(160)}>
           <ThemedView type="backgroundElement" style={styles.content}>
             {children}
           </ThemedView>

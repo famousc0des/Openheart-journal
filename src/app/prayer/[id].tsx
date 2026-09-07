@@ -3,16 +3,18 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { CircleShareSheet } from '@/components/circle-share-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { Screen } from '@/components/ui/screen';
 import { PRAYER_CATEGORY_LABELS, PRAYER_STATE_META, PRAYER_STATES } from '@/constants/status-colors';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDateTime } from '@/lib/date';
 import { createId } from '@/lib/id';
-import { useCollection } from '@/lib/collection-store';
+import { useCollection, useCollectionReady } from '@/lib/collection-store';
+import { hexToRgba } from '@/lib/color';
 import { prayerStore } from '@/lib/stores';
 import { PrayerState } from '@/lib/types';
 
@@ -20,8 +22,14 @@ export default function PrayerDetailScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const prayers = useCollection(prayerStore);
+  const ready = useCollectionReady(prayerStore);
   const prayer = prayers.find((item) => item.id === id);
   const [updateText, setUpdateText] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
+
+  if (!ready) {
+    return <Screen />;
+  }
 
   if (!prayer) {
     return (
@@ -73,6 +81,31 @@ export default function PrayerDetailScreen() {
 
       {prayer.body ? <ThemedText style={styles.body}>{prayer.body}</ThemedText> : null}
 
+      <View style={styles.shareSection}>
+        <View style={styles.shareHeader}>
+          <View style={styles.shareHeading}>
+            <ThemedText type="smallBold">Share with your circles</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Members with Premium can comment on what you send.
+            </ThemedText>
+          </View>
+          <Pressable
+            onPress={() => setShareOpen(true)}
+            style={[styles.shareButton, { backgroundColor: theme.primary }]}>
+            <Ionicons name="people-outline" size={17} color={theme.onPrimary} />
+            <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
+              Share
+            </ThemedText>
+          </Pressable>
+        </View>
+        {(prayer.sharedCircleIds?.length ?? 0) > 0 && (
+          <ThemedText type="small" themeColor="accent">
+            Shared with {prayer.sharedCircleIds?.length}{' '}
+            {prayer.sharedCircleIds?.length === 1 ? 'circle' : 'circles'}
+          </ThemedText>
+        )}
+      </View>
+
       <View style={{ gap: Spacing.two }}>
         <ThemedText type="small" themeColor="textSecondary">
           How is it now?
@@ -87,10 +120,13 @@ export default function PrayerDetailScreen() {
                 onPress={() => setState(state)}
                 style={[
                   styles.stateOption,
-                  { borderColor: active ? meta.color : theme.border, backgroundColor: active ? meta.color : 'transparent' },
+                  {
+                    borderColor: active ? meta.color : theme.border,
+                    backgroundColor: active ? hexToRgba(meta.color, 0.12) : 'transparent',
+                  },
                 ]}>
-                <Ionicons name={meta.icon} size={15} color={active ? '#fff' : theme.text} />
-                <ThemedText style={active ? styles.stateActiveText : undefined} themeColor={active ? undefined : 'text'}>
+                <Ionicons name={meta.icon} size={15} color={active ? meta.color : theme.text} />
+                <ThemedText style={active ? { color: meta.color } : undefined} themeColor={active ? undefined : 'text'}>
                   {meta.label}
                 </ThemedText>
               </Pressable>
@@ -112,8 +148,8 @@ export default function PrayerDetailScreen() {
           <Pressable
             onPress={addUpdate}
             disabled={!updateText.trim()}
-            style={[styles.addButton, { backgroundColor: theme.accent, opacity: updateText.trim() ? 1 : 0.5 }]}>
-            <Ionicons name="arrow-up" size={18} color="#fff" />
+            style={[styles.addButton, { backgroundColor: theme.primary, opacity: updateText.trim() ? 1 : 0.5 }]}>
+            <Ionicons name="arrow-up" size={18} color={theme.onPrimary} />
           </Pressable>
         </View>
 
@@ -134,11 +170,21 @@ export default function PrayerDetailScreen() {
       </View>
 
       <Pressable onPress={remove} style={styles.deleteButton}>
-        <Ionicons name="trash-outline" size={16} color={theme.accent} />
-        <ThemedText type="smallBold" themeColor="accent">
+        <Ionicons name="trash-outline" size={16} color={theme.danger} />
+        <ThemedText type="smallBold" themeColor="danger">
           Delete prayer
         </ThemedText>
       </Pressable>
+      <CircleShareSheet
+        visible={shareOpen}
+        draft={{
+          kind: 'prayer',
+          sourceId: prayer.id,
+          title: prayer.title,
+          body: prayer.body,
+        }}
+        onClose={() => setShareOpen(false)}
+      />
     </Screen>
   );
 }
@@ -146,11 +192,27 @@ export default function PrayerDetailScreen() {
 const styles = StyleSheet.create({
   title: {
     fontSize: 26,
-    lineHeight: 32,
+    lineHeight: 36,
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  shareSection: { gap: Spacing.two },
+  shareHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  shareHeading: { flex: 1, gap: 2 },
+  shareButton: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: Radius.pill,
   },
   stateGrid: {
     flexDirection: 'row',
@@ -164,10 +226,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    borderWidth: 1.5,
-  },
-  stateActiveText: {
-    color: '#ffffff',
+    borderWidth: 1,
   },
   updateRow: {
     flexDirection: 'row',
@@ -176,6 +235,7 @@ const styles = StyleSheet.create({
   },
   updateInput: {
     flex: 1,
+    fontFamily: Fonts.regular,
     borderRadius: Radius.medium,
     padding: Spacing.three,
   },

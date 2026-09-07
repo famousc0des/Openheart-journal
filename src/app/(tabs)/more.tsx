@@ -1,18 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, HairlineBorder, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { computeStreak } from '@/lib/date';
 import { useCollection } from '@/lib/collection-store';
 import { useScalar } from '@/lib/scalar-store';
-import { displayNameStore, isPremiumStore, journalStore, prayerStore, sermonStore } from '@/lib/stores';
+import { clearAllAppData } from '@/lib/app-data';
+import {
+  displayNameStore,
+  isAuthenticatedStore,
+  isPremiumStore,
+  journalStore,
+  prayerStore,
+  sermonStore,
+  sessionAuthStore,
+  showStartScreenStore,
+} from '@/lib/stores';
 
 type Tab = 'content' | 'personalize' | 'account';
 
@@ -33,7 +42,7 @@ function Row({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.row, { backgroundColor: theme.backgroundElement }]}
+      style={[styles.row, HairlineBorder, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
       disabled={!onPress}>
       <View style={[styles.rowIcon, { backgroundColor: theme.accentSoft }]}>
         <Ionicons name={icon} size={18} color={theme.accent} />
@@ -71,11 +80,12 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
       onPress={onPress}
       style={[
         styles.tabButton,
+        HairlineBorder,
         {
-          backgroundColor: active ? theme.accent : theme.backgroundElement,
+          backgroundColor: active ? theme.primary : theme.softFill,
         },
       ]}>
-      <ThemedText type="smallBold" style={{ color: active ? '#fff' : theme.text }}>
+      <ThemedText type="smallBold" style={{ color: active ? theme.onPrimary : theme.textSecondary }}>
         {label}
       </ThemedText>
     </Pressable>
@@ -106,23 +116,12 @@ export default function MoreScreen() {
 
   function inviteToCircle() {
     Share.share({
-      message: "I'm using Openheart for private journaling and prayer — thought you might like it too.",
+      message: "I'm using Openheart for private journaling and prayer. Thought you might like it too.",
     }).catch(() => {});
   }
 
   function joinChurch() {
-    if (Platform.OS === 'ios') {
-      Alert.prompt('Join a church', 'Enter the code your church shared with you.', (code) => {
-        if (code?.trim()) {
-          Alert.alert(
-            "You're connected",
-            'Your church sees a member count only — no names, no content, no analytics on what you write.'
-          );
-        }
-      });
-    } else {
-      Alert.alert('Join a church', 'Ask your church for a join code to connect (coming soon on this platform).');
-    }
+    router.push('/church/join');
   }
 
   function exportData() {
@@ -135,32 +134,52 @@ export default function MoreScreen() {
     Share.share({ message: JSON.stringify(payload, null, 2) }).catch(() => {});
   }
 
+  function signOut() {
+    sessionAuthStore.set(false);
+    void isAuthenticatedStore.set(false);
+    showStartScreenStore.set(true);
+    router.replace('/');
+  }
+
+  function deleteEverything() {
+    Alert.alert(
+      'Delete everything',
+      'This erases your journal, prayers, account, and lock on this device. It cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Erase everything',
+          style: 'destructive',
+          onPress: () => {
+            void clearAllAppData().then(() => router.replace('/'));
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <ThemedView style={styles.fill}>
       <SafeAreaView style={styles.fill} edges={['top']}>
         <ScrollView bounces={false} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <LinearGradient
-            colors={[theme.accent, '#5B3A5C']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.banner}>
+          <View style={[styles.banner, { backgroundColor: theme.backgroundElement, borderBottomColor: theme.border }]}>
             <Pressable
               style={styles.gearButton}
               onPress={() => setEditingName(true)}>
-              <Ionicons name="settings-outline" size={19} color="#fff" />
+              <Ionicons name="settings-outline" size={19} color={theme.text} />
             </Pressable>
-          </LinearGradient>
+          </View>
 
           <View style={styles.headerRow}>
             <View style={[styles.avatarRing, { backgroundColor: theme.background }]}>
               <View style={[styles.avatar, { backgroundColor: theme.accentSoft }]}>
-                <ThemedText style={[styles.avatarLetter, { color: theme.accent }]}>
+                <Text allowFontScaling={false} style={[styles.avatarLetter, { color: theme.accent }]}>
                   {(displayName || '?').charAt(0).toUpperCase()}
-                </ThemedText>
+                </Text>
               </View>
             </View>
             <View style={[styles.statusPill, { backgroundColor: theme.backgroundElement }]}>
-              <View style={[styles.statusDot, { backgroundColor: isPremium ? '#4E8B5C' : theme.textSecondary }]} />
+              <View style={[styles.statusDot, { backgroundColor: isPremium ? theme.success : theme.textSecondary }]} />
               <ThemedText type="small">{isPremium ? 'Premium' : 'Free plan'}</ThemedText>
             </View>
           </View>
@@ -194,16 +213,16 @@ export default function MoreScreen() {
             </ThemedText>
           </View>
 
-          <View style={[styles.statsCard, { backgroundColor: theme.backgroundElement }]}>
+          <View style={[styles.statsCard, HairlineBorder, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
             <StatCol value={String(entries.length)} label="Entries" />
             <StatCol value={String(prayers.length)} label="Prayers" />
             <StatCol value={String(streak)} label="Day streak" />
             <StatCol value={String(sermonNotes.length)} label="Sermons" />
           </View>
 
-          <Pressable onPress={inviteToCircle} style={[styles.ctaButton, { backgroundColor: theme.accent }]}>
-            <Ionicons name="gift-outline" size={18} color="#fff" />
-            <ThemedText style={styles.ctaText}>Invite to your Circle</ThemedText>
+          <Pressable onPress={inviteToCircle} style={[styles.ctaButton, { backgroundColor: theme.primary }]}>
+            <Ionicons name="gift-outline" size={18} color={theme.onPrimary} />
+            <ThemedText style={[styles.ctaText, { color: theme.onPrimary }]}>Invite to your Circle</ThemedText>
           </Pressable>
 
           <View style={styles.tabRow}>
@@ -227,6 +246,18 @@ export default function MoreScreen() {
                   subtitle="Offline scripture lookup"
                   onPress={() => router.push('/bible')}
                 />
+                <Row
+                  icon="archive-outline"
+                  label="Vault"
+                  subtitle="Voice notes, writings, and verses"
+                  onPress={() => router.push('/vault')}
+                />
+                <Row
+                  icon="home-outline"
+                  label="How was church?"
+                  subtitle="Sunday check-in"
+                  onPress={() => router.push('/church/check-in')}
+                />
               </>
             )}
 
@@ -235,7 +266,7 @@ export default function MoreScreen() {
                 <Row
                   icon="color-palette-outline"
                   label="Appearance"
-                  subtitle={isPremium ? 'Choose an accent color' : 'Premium feature'}
+                  subtitle={isPremium ? 'Theme and accent color' : 'Light / dark free · colors are Premium'}
                   onPress={() => router.push('/settings/appearance')}
                   right={
                     !isPremium ? (
@@ -250,7 +281,7 @@ export default function MoreScreen() {
                 <Row
                   icon="sparkles-outline"
                   label="Preview premium"
-                  subtitle="Demo toggle — no payment in this prototype"
+                  subtitle="Demo toggle. No payment in this prototype"
                   right={
                     <Switch
                       value={isPremium}
@@ -265,25 +296,49 @@ export default function MoreScreen() {
             {tab === 'account' && (
               <>
                 <Row icon="business-outline" label="Join a church" subtitle="Connect with a join code" onPress={joinChurch} />
+                <Row
+                  icon="shield-outline"
+                  label="App lock"
+                  subtitle="PIN and Face ID"
+                  onPress={() => router.push('/settings/lock')}
+                />
+                <Row
+                  icon="notifications-outline"
+                  label="Notifications"
+                  subtitle="Check-in, prayer, and Sunday church"
+                  onPress={() => router.push('/settings/notifications')}
+                />
                 <Row icon="download-outline" label="Export everything" subtitle="Full export, always free" onPress={exportData} />
+                <Row
+                  icon="document-text-outline"
+                  label="Terms of Service"
+                  onPress={() => router.push('/legal/terms')}
+                />
                 <Row
                   icon="lock-closed-outline"
                   label="Privacy"
-                  subtitle="End-to-end encrypted on your device"
-                  onPress={() =>
-                    Alert.alert(
-                      'Privacy',
-                      'Your entries are encrypted on this device with a key that never leaves it unencrypted. Openheart cannot read what you write.'
-                    )
-                  }
+                  subtitle="Encrypted on this device"
+                  onPress={() => router.push('/legal/privacy')}
                 />
                 <Row
                   icon="information-circle-outline"
                   label="About Openheart"
-                  subtitle="v1.0.0 (prototype)"
+                  subtitle="v1.0.0"
                   onPress={() =>
-                    Alert.alert('Openheart', 'A private, Christian journaling app. This build is a local-only prototype.')
+                    Alert.alert('Openheart', 'A private, Christian journaling app. Your words stay on this device.')
                   }
+                />
+                <Row
+                  icon="log-out-outline"
+                  label="Sign Out"
+                  subtitle="Keep your data on this device"
+                  onPress={signOut}
+                />
+                <Row
+                  icon="trash-outline"
+                  label="Delete everything"
+                  subtitle="Erase this device’s Openheart data"
+                  onPress={deleteEverything}
                 />
               </>
             )}
@@ -304,6 +359,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.two,
     alignItems: 'flex-end',
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   gearButton: {
     width: 38,
@@ -311,7 +367,9 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   headerRow: {
     flexDirection: 'row',
@@ -334,10 +392,14 @@ const styles = StyleSheet.create({
     borderRadius: 42,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   avatarLetter: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontFamily: Fonts.medium,
+    fontSize: 28,
+    lineHeight: 34,
+    includeFontPadding: false,
+    textAlign: 'center',
   },
   statusPill: {
     flexDirection: 'row',
@@ -360,6 +422,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 22,
+    lineHeight: 32,
   },
   nameEditRow: {
     flexDirection: 'row',
@@ -367,8 +430,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   nameInput: {
+    fontFamily: Fonts.regular,
     fontSize: 18,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     paddingVertical: 4,
     minWidth: 140,
   },
@@ -386,6 +450,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
+    lineHeight: 26,
   },
   ctaButton: {
     flexDirection: 'row',
@@ -398,9 +463,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   ctaText: {
-    color: '#ffffff',
+    fontFamily: Fonts.medium,
     fontSize: 16,
-    fontWeight: '700',
   },
   tabRow: {
     flexDirection: 'row',
