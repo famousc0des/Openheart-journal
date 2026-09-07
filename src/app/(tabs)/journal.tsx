@@ -1,17 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { LayoutAnimationConfig } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, HairlineBorder, Radius, Spacing, Tracking } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatRelative } from '@/lib/date';
 import { useCollection } from '@/lib/collection-store';
+import { exportJournalEntry } from '@/lib/journal-export';
 import { CARD_PALETTE, entryIcon, entryLabel } from '@/lib/journal-display';
+import { listLayout } from '@/lib/motion';
 import { journalStore } from '@/lib/stores';
 import { JournalEntry } from '@/lib/types';
 
@@ -37,6 +40,7 @@ export default function JournalScreen() {
   function openMenu(entry: JournalEntry) {
     Alert.alert(entryLabel(entry), undefined, [
       { text: 'Open', onPress: () => router.push(`/journal/${entry.id}`) },
+      { text: 'Export', onPress: () => exportJournalEntry(entry) },
       {
         text: 'Delete',
         style: 'destructive',
@@ -49,74 +53,87 @@ export default function JournalScreen() {
   return (
     <ThemedView style={styles.fill}>
       <SafeAreaView style={styles.fill} edges={['top']}>
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.content}
-          ListHeaderComponent={
-            <View style={styles.header}>
-              <View style={styles.headerRow}>
-                <View>
-                  <ThemedText type="title" style={styles.title}>
-                    Journal
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary" style={styles.countLabel}>
-                    {entries.length} {entries.length === 1 ? 'ENTRY' : 'ENTRIES'}
-                  </ThemedText>
+        <LayoutAnimationConfig skipEntering>
+          <Animated.FlatList
+            data={filtered}
+            keyExtractor={(item) => item.id}
+            itemLayoutAnimation={listLayout}
+            contentContainerStyle={[styles.content, filtered.length === 0 && styles.contentEmpty]}
+            ListHeaderComponent={
+              <View style={styles.header}>
+                <View style={styles.headerRow}>
+                  <View>
+                    <ThemedText type="title" style={styles.title}>
+                      Journal
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" style={styles.countLabel}>
+                      {entries.length} {entries.length === 1 ? 'ENTRY' : 'ENTRIES'}
+                    </ThemedText>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push('/journal/new')}
+                    style={[styles.addButton, { backgroundColor: theme.primary }]}>
+                    <Ionicons name="add" size={24} color={theme.onPrimary} />
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={() => router.push('/journal/new')}
-                  style={[styles.addButton, { backgroundColor: theme.accent }]}>
-                  <Ionicons name="add" size={24} color="#fff" />
-                </Pressable>
+                <View
+                  style={[
+                    styles.searchBar,
+                    HairlineBorder,
+                    { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+                  ]}>
+                  <Ionicons name="search" size={16} color={theme.textSecondary} />
+                  <TextInput
+                    value={query}
+                    onChangeText={setQuery}
+                    placeholder="Search your entries"
+                    placeholderTextColor={theme.textSecondary}
+                    style={[styles.searchInput, { color: theme.text }]}
+                  />
+                </View>
               </View>
-              <View style={[styles.searchBar, { backgroundColor: theme.backgroundElement }]}>
-                <Ionicons name="search" size={16} color={theme.textSecondary} />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Search your entries"
-                  placeholderTextColor={theme.textSecondary}
-                  style={[styles.searchInput, { color: theme.text }]}
-                />
-              </View>
-            </View>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              title={query ? 'No matches' : 'Nothing here yet'}
-              body={
-                query
-                  ? 'Try a different word or clear your search.'
-                  : 'Your morning and evening check-ins will show up here as you go.'
-              }
-            />
-          }
-          renderItem={({ item, index }) => (
-            <Pressable
-              onPress={() => router.push(`/journal/${item.id}`)}
-              style={[styles.card, { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] }]}>
-              <Ionicons
-                name={entryIcon(item)}
-                size={96}
-                color="rgba(255,255,255,0.12)"
-                style={styles.cardWatermark}
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon={query ? 'search-outline' : 'book-outline'}
+                title={query ? 'No matches' : 'Nothing here yet'}
+                body={
+                  query
+                    ? 'Try a different word or clear your search.'
+                    : 'Your morning and evening check-ins will show up here as you go.'
+                }
               />
-              <View style={styles.cardTopRow}>
-                <View style={styles.cardIconBadge}>
-                  <Ionicons name={entryIcon(item)} size={16} color="#fff" />
+            }
+            renderItem={({ item, index }) => (
+              <Pressable
+                onPress={() => router.push(`/journal/${item.id}`)}
+                style={[
+                  styles.card,
+                  HairlineBorder,
+                  { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] },
+                ]}>
+                <Ionicons
+                  name={entryIcon(item)}
+                  size={96}
+                  color="rgba(19, 20, 22, 0.06)"
+                  style={styles.cardWatermark}
+                />
+                <View style={styles.cardTopRow}>
+                  <View style={styles.cardIconBadge}>
+                    <Ionicons name={entryIcon(item)} size={16} color={theme.accent} />
+                  </View>
+                  <Pressable hitSlop={10} onPress={() => openMenu(item)}>
+                    <Ionicons name="ellipsis-horizontal" size={20} color="rgba(19,20,22,0.55)" />
+                  </Pressable>
                 </View>
-                <Pressable hitSlop={10} onPress={() => openMenu(item)}>
-                  <Ionicons name="ellipsis-horizontal" size={20} color="rgba(255,255,255,0.85)" />
-                </Pressable>
-              </View>
-              <ThemedText style={styles.cardTitle} numberOfLines={3}>
-                {entryLabel(item)}
-              </ThemedText>
-              <ThemedText style={styles.cardMeta}>{formatRelative(item.createdAt)}</ThemedText>
-            </Pressable>
-          )}
-        />
+                <ThemedText style={styles.cardTitle} numberOfLines={3}>
+                  {entryLabel(item)}
+                </ThemedText>
+                <ThemedText style={styles.cardMeta}>{formatRelative(item.createdAt)}</ThemedText>
+              </Pressable>
+            )}
+          />
+        </LayoutAnimationConfig>
       </SafeAreaView>
     </ThemedView>
   );
@@ -125,9 +142,13 @@ export default function JournalScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: {
-    padding: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.two,
     paddingBottom: Spacing.six * 2,
     gap: Spacing.three,
+  },
+  contentEmpty: {
+    flexGrow: 1,
   },
   header: {
     gap: Spacing.three,
@@ -140,7 +161,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 34,
-    lineHeight: 40,
+    lineHeight: 46,
   },
   countLabel: {
     textTransform: 'uppercase',
@@ -163,6 +184,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
   card: {
@@ -186,18 +208,23 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTitle: {
-    color: '#ffffff',
+    color: '#131416',
+    fontFamily: Fonts.regular,
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: '700',
+    letterSpacing: Tracking.heading,
   },
   cardMeta: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#71717A',
+    fontFamily: Fonts.regular,
     fontSize: 13,
+    letterSpacing: Tracking.body,
   },
 });

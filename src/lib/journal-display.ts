@@ -2,7 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { JournalEntry } from '@/lib/types';
 
-export const CARD_PALETTE = ['#5B3A5C', '#43506B', '#6B3F3F', '#3F5B4E', '#5C4A2E', '#4A3F5C'];
+// Soft pastel washes for journal cards, ink text stays legible on all of them.
+export const CARD_PALETTE = [
+  '#E3EDFB', // powder blue
+  '#E5F5E9', // mint cream
+  '#FDEEE3', // peach
+  '#F3E8FA', // lavender
+  '#FBE9EC', // rose
+  '#FDF6DF', // butter
+];
 
 export function entryLabel(entry: JournalEntry): string {
   if (entry.type === 'checkin') return entry.period === 'morning' ? 'Morning check-in' : 'Evening check-in';

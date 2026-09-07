@@ -1,40 +1,46 @@
 import { Tabs } from 'expo-router';
 import { GlassView } from 'expo-glass-effect';
+import { StatusBar } from 'expo-status-bar';
 import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CIRCLE_ICON, JOURNAL_ICON, MORE_ICON, PRAYER_ICON, TODAY_ICON } from '@/lib/tab-icons';
 import { TabSvgIcon } from '@/components/ui/tab-svg-icon';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useTheme } from '@/hooks/use-theme';
+import { useTheme, useThemeScheme } from '@/hooks/use-theme';
 import { hexToRgba } from '@/lib/color';
 
 type GlassTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 function GlassTabBar({ state, descriptors, navigation }: GlassTabBarProps) {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
   const theme = useTheme();
-  const isDark = colorScheme === 'dark';
+  const scheme = useThemeScheme();
 
   return (
     <View
       pointerEvents="box-none"
       style={[styles.tabBarPosition, { paddingBottom: Math.max(insets.bottom - 6, 4) }]}>
-      <GlassView
-        glassEffectStyle="regular"
-        colorScheme={isDark ? 'dark' : 'light'}
-        tintColor={theme.background}
+      <View
         style={[
-          styles.glassRail,
+          styles.glassRim,
           {
-            backgroundColor: hexToRgba(theme.background, 0.82),
-            borderColor: hexToRgba(theme.text, 0.14),
-            shadowColor: theme.text,
+            borderColor: scheme === 'dark' ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.78)',
+            backgroundColor: scheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.42)',
+            shadowColor: scheme === 'dark' ? '#000000' : '#2A221C',
           },
         ]}>
-        {state.routes.map((route, index) => {
+        <GlassView
+          glassEffectStyle="regular"
+          colorScheme={scheme}
+          tintColor={theme.background}
+          style={[
+            styles.glassRail,
+            {
+              backgroundColor: hexToRgba(theme.background, 0.55),
+            },
+          ]}>
+          {state.routes.map((route, index) => {
           const options = descriptors[route.key].options;
           const isFocused = state.index === index;
 
@@ -45,91 +51,99 @@ function GlassTabBar({ state, descriptors, navigation }: GlassTabBarProps) {
               canPreventDefault: true,
             });
 
-            if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params);
+            }
           };
 
           return (
             <Pressable
               key={route.key}
               accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityState={{ selected: isFocused }}
               accessibilityLabel={options.tabBarAccessibilityLabel ?? options.title}
               onPress={onPress}
               onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
               style={({ pressed }) => [
                 styles.tabToggle,
                 isFocused
-                  ? {
-                      backgroundColor: theme.accent,
-                      borderColor: hexToRgba(theme.text, 0.16),
-                    }
-                  : {
-                      backgroundColor: hexToRgba(theme.backgroundElement, 0.88),
-                      borderColor: hexToRgba(theme.text, 0.1),
-                    },
-                pressed && styles.tabTogglePressed,
+                  ? { backgroundColor: theme.softFill, borderColor: theme.border }
+                  : { backgroundColor: 'transparent', borderColor: 'transparent' },
+                pressed ? styles.tabTogglePressed : null,
               ]}>
               {options.tabBarIcon?.({
                 focused: isFocused,
-                color: isFocused ? '#FFFFFF' : theme.textSecondary,
+                color: isFocused ? theme.accent : theme.textSecondary,
                 size: 29,
               })}
             </Pressable>
           );
         })}
-      </GlassView>
+        </GlassView>
+      </View>
     </View>
   );
 }
 
 export default function TabsLayout() {
+  const scheme = useThemeScheme();
+  const sceneFill = { flex: 1, backgroundColor: 'transparent' as const };
+  const screenOptions = {
+    headerShown: false,
+    tabBarHideOnKeyboard: true,
+    sceneStyle: sceneFill,
+  };
+
   return (
-    <Tabs
-      tabBar={(props) => <GlassTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-        tabBarHideOnKeyboard: true,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, size }) => <TabSvgIcon xml={TODAY_ICON} color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="journal"
-        options={{
-          title: 'Journal',
-          tabBarIcon: ({ color, size }) => <TabSvgIcon xml={JOURNAL_ICON} color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="prayer"
-        options={{
-          title: 'Prayer',
-          tabBarIcon: ({ color, size }) => <TabSvgIcon xml={PRAYER_ICON} color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="circle"
-        options={{
-          title: 'Circle',
-          tabBarIcon: ({ color, size }) => <TabSvgIcon xml={CIRCLE_ICON} color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: 'More',
-          tabBarIcon: ({ color, size }) => <TabSvgIcon xml={MORE_ICON} color={color} size={size} />,
-        }}
-      />
-    </Tabs>
+    <View style={[styles.fill, sceneFill]}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <Tabs tabBar={(props) => <GlassTabBar {...props} />} screenOptions={screenOptions}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Today',
+            sceneStyle: { flex: 1, backgroundColor: '#121212' },
+            tabBarIcon: ({ color, size }) => <TabSvgIcon xml={TODAY_ICON} color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="journal"
+          options={{
+            title: 'Journal',
+            tabBarIcon: ({ color, size }) => <TabSvgIcon xml={JOURNAL_ICON} color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="prayer"
+          options={{
+            title: 'Prayer',
+            tabBarIcon: ({ color, size }) => <TabSvgIcon xml={PRAYER_ICON} color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="circle"
+          options={{
+            title: 'Circle',
+            sceneStyle: { flex: 1, backgroundColor: 'transparent' },
+            tabBarIcon: ({ color, size }) => <TabSvgIcon xml={CIRCLE_ICON} color={color} size={size} />,
+          }}
+        />
+        <Tabs.Screen
+          name="more"
+          options={{
+            title: 'More',
+            tabBarIcon: ({ color, size }) => <TabSvgIcon xml={MORE_ICON} color={color} size={size} />,
+          }}
+        />
+      </Tabs>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
   tabBarPosition: {
     position: 'absolute',
     right: 12,
@@ -137,9 +151,19 @@ const styles = StyleSheet.create({
     left: 12,
     alignItems: 'center',
   },
-  glassRail: {
+  glassRim: {
     width: '100%',
     maxWidth: 430,
+    padding: 1.5,
+    borderRadius: 40,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.14,
+    shadowRadius: 22,
+    elevation: 14,
+  },
+  glassRail: {
     height: 76,
     flexDirection: 'row',
     alignItems: 'center',
@@ -148,11 +172,6 @@ const styles = StyleSheet.create({
     padding: 7,
     overflow: 'hidden',
     borderRadius: 38,
-    borderWidth: StyleSheet.hairlineWidth,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.24,
-    shadowRadius: 18,
-    elevation: 12,
   },
   tabToggle: {
     flex: 1,
@@ -161,7 +180,7 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   tabTogglePressed: {
     transform: [{ scale: 0.94 }],

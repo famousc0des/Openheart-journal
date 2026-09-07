@@ -4,25 +4,29 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CircleShareSheet } from '@/components/circle-share-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CircleIconButton, SoftHeader } from '@/components/ui/soft-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, HairlineBorder, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { verseByRef } from '@/lib/bible-data';
 import { formatDateTime } from '@/lib/date';
 import { CARD_PALETTE, entryLabel } from '@/lib/journal-display';
-import { useCollection } from '@/lib/collection-store';
+import { useCollection, useCollectionReady } from '@/lib/collection-store';
 import { journalStore } from '@/lib/stores';
+import { exportJournalEntry } from '@/lib/journal-export';
 import { moodOption } from '@/lib/prompts';
 
 export default function JournalDetailScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const entries = useCollection(journalStore);
+  const ready = useCollectionReady(journalStore);
   const entry = entries.find((item) => item.id === id);
 
   const [editing, setEditing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [body, setBody] = useState('');
   const initialized = useRef(false);
 
@@ -37,6 +41,8 @@ export default function JournalDetailScreen() {
     if (!entry) return;
     Alert.alert(entryLabel(entry), undefined, [
       { text: editing ? 'Stop editing' : 'Edit', onPress: () => setEditing((prev) => !prev) },
+      { text: 'Share with a circle', onPress: () => setShareOpen(true) },
+      { text: 'Export', onPress: () => exportJournalEntry(entry) },
       {
         text: 'Delete',
         style: 'destructive',
@@ -47,6 +53,10 @@ export default function JournalDetailScreen() {
       },
       { text: 'Cancel', style: 'cancel' },
     ]);
+  }
+
+  if (!ready) {
+    return <ThemedView style={styles.fill} />;
   }
 
   if (!entry) {
@@ -82,8 +92,8 @@ export default function JournalDetailScreen() {
             </ThemedText>
             <Pressable
               onPress={editing ? save : () => setEditing(true)}
-              style={[styles.pillButton, { backgroundColor: editing ? theme.accent : theme.backgroundElement }]}>
-              <ThemedText type="smallBold" style={{ color: editing ? '#fff' : theme.text }}>
+              style={[styles.pillButton, { backgroundColor: editing ? theme.primary : theme.softFill }]}>
+              <ThemedText type="smallBold" style={{ color: editing ? theme.onPrimary : theme.text }}>
                 {editing ? 'Save' : 'Edit'}
               </ThemedText>
             </Pressable>
@@ -128,9 +138,13 @@ export default function JournalDetailScreen() {
                 return (
                   <View
                     key={ref}
-                    style={[styles.tile, { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] }]}>
+                    style={[
+                      styles.tile,
+                      HairlineBorder,
+                      { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] },
+                    ]}>
                     <View style={styles.tileBadge}>
-                      <Ionicons name="bookmark" size={13} color="#fff" />
+                      <Ionicons name="bookmark" size={13} color={theme.accent} />
                     </View>
                     <ThemedText style={styles.tileRef} numberOfLines={1}>
                       {verse.ref}
@@ -144,6 +158,16 @@ export default function JournalDetailScreen() {
             </View>
           )}
         </ScrollView>
+        <CircleShareSheet
+          visible={shareOpen}
+          draft={{
+            kind: 'journal',
+            sourceId: entry.id,
+            title: bigTitle,
+            body: entry.body,
+          }}
+          onClose={() => setShareOpen(false)}
+        />
       </SafeAreaView>
     </ThemedView>
   );
@@ -171,7 +195,7 @@ const styles = StyleSheet.create({
   },
   bigTitle: {
     fontSize: 32,
-    lineHeight: 38,
+    lineHeight: 44,
   },
   moodTag: {
     flexDirection: 'row',
@@ -193,6 +217,7 @@ const styles = StyleSheet.create({
   },
   bodyInput: {
     minHeight: 180,
+    fontFamily: Fonts.regular,
     fontSize: 18,
     lineHeight: 27,
     borderRadius: Radius.medium,
@@ -219,19 +244,21 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   tileRef: {
-    color: '#ffffff',
-    fontWeight: '700',
+    color: '#131416',
+    fontFamily: Fonts.medium,
     fontSize: 14,
   },
   tileText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: '#71717A',
+    fontFamily: Fonts.regular,
     fontSize: 12,
     lineHeight: 17,
-    fontStyle: 'italic',
   },
 });

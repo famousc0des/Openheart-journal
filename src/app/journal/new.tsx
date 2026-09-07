@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SoftHeader } from '@/components/ui/soft-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing, Tracking } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { createId } from '@/lib/id';
 import { journalStore } from '@/lib/stores';
@@ -38,8 +38,8 @@ export default function NewJournalEntryScreen() {
             <Pressable
               onPress={save}
               disabled={!body.trim()}
-              style={[styles.pillButton, { backgroundColor: theme.accent, opacity: body.trim() ? 1 : 0.4 }]}>
-              <ThemedText type="smallBold" style={{ color: '#fff' }}>
+              style={[styles.pillButton, { backgroundColor: theme.primary, opacity: body.trim() ? 1 : 0.4 }]}>
+              <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
                 Save
               </ThemedText>
             </Pressable>
@@ -89,12 +89,14 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   titleInput: {
+    fontFamily: Fonts.regular,
     fontSize: 32,
-    lineHeight: 38,
-    fontWeight: '700',
+    lineHeight: 44,
+    letterSpacing: Tracking.heading,
     padding: 0,
   },
   bodyInput: {
+    fontFamily: Fonts.regular,
     fontSize: 18,
     lineHeight: 27,
     minHeight: 240,

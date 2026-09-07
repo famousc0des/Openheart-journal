@@ -7,10 +7,17 @@
     "icon": "./assets/images/icon.png",
     "scheme": "openheartjournal",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F3EEE6",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "backgroundColor": "#F3EEE6"
     },
     "android": {
+      "backgroundColor": "#F3EEE6",
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -20,7 +27,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -28,9 +35,34 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F3EEE6",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock Openheart with Face ID."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Openheart to record voice notes for your vault and Sunday check-in.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3B82F6",
+          "defaultChannel": "openheart-reminders",
+          "enableBackgroundRemoteNotifications": false
         }
       ]
     ],

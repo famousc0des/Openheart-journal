@@ -2,48 +2,81 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { Pill } from '@/components/ui/pill';
 import { Screen } from '@/components/ui/screen';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ACCENT_PRESETS } from '@/lib/color';
 import { useScalar } from '@/lib/scalar-store';
-import { accentOverrideStore, isPremiumStore } from '@/lib/stores';
+import { accentOverrideStore, isPremiumStore, themePreferenceStore } from '@/lib/stores';
+import { ThemePreference } from '@/lib/types';
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 export default function AppearanceScreen() {
   const theme = useTheme();
   const isPremium = useScalar(isPremiumStore);
   const accentOverride = useScalar(accentOverrideStore);
+  const themePreference = useScalar(themePreferenceStore);
 
   if (!isPremium) {
     return (
-      <Screen contentContainerStyle={styles.lockedContent}>
-        <View style={[styles.lockIcon, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name="color-palette" size={32} color={theme.accent} />
+      <Screen>
+        <ThemedText themeColor="textSecondary">Light, dark, or follow the phone. This is always free.</ThemedText>
+        <View style={styles.themeRow}>
+          {THEME_OPTIONS.map((option) => (
+            <Pill
+              key={option.value}
+              label={option.label}
+              active={themePreference === option.value}
+              onPress={() => void themePreferenceStore.set(option.value)}
+            />
+          ))}
         </View>
-        <ThemedText type="subtitle" style={styles.lockedTitle}>
-          Custom colors are a premium feature
-        </ThemedText>
-        <ThemedText themeColor="textSecondary" style={styles.lockedBody}>
-          Everything that touches your own words stays free forever. Themes and accent colors are
-          part of Openheart Premium.
-        </ThemedText>
-        <Pressable
-          onPress={() => isPremiumStore.set(true)}
-          style={[styles.previewButton, { backgroundColor: theme.accent }]}>
-          <ThemedText type="smallBold" style={{ color: '#fff' }}>
-            Preview premium
+        <View style={styles.lockedBlock}>
+          <View style={[styles.lockIcon, { backgroundColor: theme.accentSoft }]}>
+            <Ionicons name="color-palette" size={32} color={theme.accent} />
+          </View>
+          <ThemedText type="subtitle" style={styles.lockedTitle}>
+            Custom colors are a premium feature
           </ThemedText>
-        </Pressable>
+          <ThemedText themeColor="textSecondary" style={styles.lockedBody}>
+            Everything that touches your own words stays free forever. Accent colors are part of
+            Openheart Premium.
+          </ThemedText>
+          <Pressable
+            onPress={() => isPremiumStore.set(true)}
+            style={[styles.previewButton, { backgroundColor: theme.primary }]}>
+            <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
+              Preview premium
+            </ThemedText>
+          </Pressable>
+        </View>
       </Screen>
     );
   }
 
   return (
     <Screen>
+      <ThemedText themeColor="textSecondary">Light, dark, or follow the phone. This is always free.</ThemedText>
+      <View style={styles.themeRow}>
+        {THEME_OPTIONS.map((option) => (
+          <Pill
+            key={option.value}
+            label={option.label}
+            active={themePreference === option.value}
+            onPress={() => void themePreferenceStore.set(option.value)}
+          />
+        ))}
+      </View>
       <ThemedText themeColor="textSecondary">Pick an accent color used across buttons, links, and highlights.</ThemedText>
       <View style={styles.grid}>
         {ACCENT_PRESETS.map((preset) => {
-          const active = accentOverride === preset.value || (!accentOverride && preset.value === '#A83E3E');
+          const active = accentOverride === preset.value || (!accentOverride && preset.value === '#3B82F6');
           return (
             <Pressable
               key={preset.value}
@@ -67,12 +100,15 @@ export default function AppearanceScreen() {
 }
 
 const styles = StyleSheet.create({
-  lockedContent: {
-    flexGrow: 1,
+  themeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  lockedBlock: {
     alignItems: 'center',
-    justifyContent: 'center',
     gap: Spacing.three,
-    paddingHorizontal: Spacing.five,
+    paddingVertical: Spacing.four,
   },
   lockIcon: {
     width: 72,

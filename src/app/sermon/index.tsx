@@ -38,7 +38,7 @@ export default function SermonScreen() {
           ListEmptyComponent={
             <EmptyState
               title="No notes yet"
-              body="Jot down what stood out this Sunday — you'll be nudged to revisit it later in the week."
+              body="Jot down what stood out this Sunday. You'll be nudged to revisit it later in the week."
             />
           }
           renderItem={({ item }) => (
@@ -55,7 +55,7 @@ export default function SermonScreen() {
                 {item.rawNotes}
               </ThemedText>
               {item.tidiedNotes && (
-                <ThemedText type="small" themeColor="accent">
+                <ThemedText type="small" themeColor="success">
                   ✓ Tidied
                 </ThemedText>
               )}
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    lineHeight: 38,
+    lineHeight: 44,
   },
   item: {
     gap: Spacing.one,

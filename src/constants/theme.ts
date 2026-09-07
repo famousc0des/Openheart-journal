@@ -1,61 +1,94 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * "Default" design language, light and dark variants.
+ * Light: warm notebook paper, hairline borders, whisper-weight Inter.
+ * Dark: warm charcoal paper, the same type and a single Signal Blue accent.
  */
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const Palette = {
+  void: '#0B0C0E',
+  graphite: '#131416',
+  charcoal: '#1F1F21',
+  smoke: '#3C3D3E',
+  steel: '#71717A',
+  fog: '#858687',
+  ash: '#9D9E9F',
+  chalk: '#CECECF',
+  snow: '#FFFFFF',
+  bone: '#F2F2F2',
+  ink: '#333333',
+  signalBlue: '#3B82F6',
+  arcBlue: '#60A5FA',
+  ringBlue: '#93C5FD',
+  mint: '#4ADE80',
+  fern: '#22C55E',
+  coral: '#F87171',
+  ember: '#EA580C',
+  iris: '#314EF0',
+} as const;
+
+const LightColors = {
+  text: '#131416',
+  textSecondary: Palette.steel,
+  textMuted: Palette.ash,
+  background: '#F3EEE6',
+  backgroundElement: '#FAF7F1',
+  backgroundSelected: '#EBE4D8',
+  softFill: 'rgba(42, 34, 28, 0.045)',
+  accent: Palette.signalBlue,
+  accentSoft: 'rgba(59, 130, 246, 0.1)',
+  border: 'rgba(42, 34, 28, 0.08)',
+  primary: Palette.signalBlue,
+  onPrimary: Palette.snow,
+  success: Palette.fern,
+  danger: '#EF4444',
+} as const;
+
+const DarkColors = {
+  text: Palette.bone,
+  textSecondary: Palette.ash,
+  textMuted: Palette.steel,
+  background: '#161310',
+  backgroundElement: '#1F1C18',
+  backgroundSelected: '#2A2621',
+  softFill: 'rgba(255, 255, 255, 0.06)',
+  accent: Palette.arcBlue,
+  accentSoft: 'rgba(96, 165, 250, 0.18)',
+  border: 'rgba(255, 255, 255, 0.1)',
+  primary: Palette.signalBlue,
+  onPrimary: Palette.snow,
+  success: Palette.mint,
+  danger: Palette.coral,
+} as const;
 
 export const Colors = {
-  light: {
-    text: '#2B1E1A',
-    background: '#FBF6F0',
-    backgroundElement: '#F1E7DC',
-    backgroundSelected: '#E7D5C4',
-    textSecondary: '#7A6A5F',
-    accent: '#A83E3E',
-    accentSoft: '#F1DCDC',
-    border: '#E4D6C8',
-  },
-  dark: {
-    text: '#F5ECE3',
-    background: '#1B1512',
-    backgroundElement: '#2A211C',
-    backgroundSelected: '#3A2D26',
-    textSecondary: '#B8A99C',
-    accent: '#E08A8A',
-    accentSoft: '#3A2323',
-    border: '#3A2D26',
-  },
+  light: LightColors,
+  dark: DarkColors,
 } as const;
+
+export { Palette };
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+export const Fonts = {
+  sans: 'SpotifyMixUI-Regular',
+  regular: 'SpotifyMixUI-Regular',
+  medium: 'SpotifyMixUI-Bold',
+  bold: 'SpotifyMixUI-TitleBold',
+  display: 'SpotifyMixUI-TitleExtraBold',
+  mono: 'SpotifyMixUI-Regular',
+} as const;
+
+/** Tight, engineered letter-spacing that eases as sizes grow. */
+export const Tracking = {
+  body: -0.1,
+  subheading: -0.2,
+  heading: -0.3,
+  display: -0.4,
+} as const;
 
 export const Spacing = {
   half: 2,
@@ -71,16 +104,27 @@ export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
 
 export const Radius = {
-  small: 14,
-  medium: 20,
-  large: 28,
+  small: 10,
+  medium: 14,
+  large: 20,
   pill: 999,
 } as const;
 
+/**
+ * Elevation comes from hairline rings + a faint inset top highlight,
+ * not cast shadows.
+ */
+export const HairlineBorder = {
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: 'rgba(0, 0, 0, 0.08)',
+} as const;
+
 export const SoftShadow = {
-  shadowColor: '#3A241C',
-  shadowOpacity: 0.08,
-  shadowRadius: 16,
-  shadowOffset: { width: 0, height: 6 },
-  elevation: 3,
+  ...HairlineBorder,
+  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
+} as const;
+
+/** Shadow for the bone primary action pill. */
+export const PrimaryActionShadow = {
+  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.1)',
 } as const;

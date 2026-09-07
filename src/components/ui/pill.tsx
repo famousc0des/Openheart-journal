@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { Radius } from '@/constants/theme';
+import { Fonts, HairlineBorder, PrimaryActionShadow, Radius, Tracking } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { hexToRgba } from '@/lib/color';
 
 export function Pill({
   label,
@@ -17,13 +18,23 @@ export function Pill({
   size?: 'md' | 'lg';
 }) {
   const theme = useTheme();
-  const background = active ? color ?? theme.accent : theme.backgroundElement;
-  const textColor = active ? '#ffffff' : theme.textSecondary;
+  // Colored pills use the tinted-outline badge treatment; neutral active pills
+  // use the bone primary-action fill.
+  const background = active ? (color ? hexToRgba(color, 0.12) : theme.primary) : theme.softFill;
+  const textColor = active ? (color ?? theme.onPrimary) : theme.textSecondary;
+  const borderColor = active && color ? color : undefined;
 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.pill, size === 'lg' && styles.pillLarge, { backgroundColor: background }]}>
+      style={[
+        styles.pill,
+        HairlineBorder,
+        size === 'lg' && styles.pillLarge,
+        { backgroundColor: background, borderColor: theme.border },
+        borderColor != null && { borderColor },
+        active && !color && PrimaryActionShadow,
+      ]}>
       <Text style={[styles.label, size === 'lg' && styles.labelLarge, { color: textColor }]}>{label}</Text>
     </Pressable>
   );
@@ -40,11 +51,17 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   label: {
+    fontFamily: Fonts.regular,
     fontSize: 13,
-    fontWeight: '600',
+    lineHeight: 18,
+    includeFontPadding: false,
+    letterSpacing: Tracking.body,
   },
   labelLarge: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.medium,
+    fontSize: 15,
+    lineHeight: 21,
+    includeFontPadding: false,
+    letterSpacing: Tracking.body,
   },
 });

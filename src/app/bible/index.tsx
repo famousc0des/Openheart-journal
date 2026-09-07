@@ -1,33 +1,43 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Pill } from '@/components/ui/pill';
-import { Radius, SoftShadow, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { searchVerses } from '@/lib/bible-data';
-import { createId } from '@/lib/id';
-import { journalStore } from '@/lib/stores';
-import { ScriptureVerse } from '@/lib/types';
+import { CircleShareSheet } from "@/components/circle-share-sheet";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Pill } from "@/components/ui/pill";
+import { Fonts, HairlineBorder, Radius, SoftShadow, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { ShareDraft } from "@/lib/circle-share";
+import { searchVerses } from "@/lib/bible-data";
+import { createId } from "@/lib/id";
+import { journalStore } from "@/lib/stores";
+import { ScriptureVerse } from "@/lib/types";
 
-const TOPICS = ['peace', 'anxious', 'grateful', 'hopeful', 'weary', 'sorrowful'];
+const TOPICS = [
+  "peace",
+  "anxious",
+  "grateful",
+  "hopeful",
+  "weary",
+  "sorrowful",
+];
 const TOPIC_LABELS: Record<string, string> = {
-  peace: 'Peace',
-  anxious: 'Anxiety',
-  grateful: 'Gratitude',
-  hopeful: 'Hope',
-  weary: 'Weariness',
-  sorrowful: 'Grief',
+  peace: "Peace",
+  anxious: "Anxiety",
+  grateful: "Gratitude",
+  hopeful: "Hope",
+  weary: "Weariness",
+  sorrowful: "Grief",
 };
 
 export default function BibleScreen() {
   const theme = useTheme();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<Record<string, boolean>>({});
+  const [shareDraft, setShareDraft] = useState<ShareDraft | null>(null);
 
   const results = useMemo(() => searchVerses(query), [query]);
 
@@ -38,7 +48,7 @@ export default function BibleScreen() {
       id,
       createdAt: now,
       updatedAt: now,
-      type: 'freeform',
+      type: "freeform",
       title: verse.ref,
       body: `“${verse.text}”\n\n`,
       scriptureRefs: [verse.ref],
@@ -49,7 +59,7 @@ export default function BibleScreen() {
 
   return (
     <ThemedView style={styles.fill}>
-      <SafeAreaView style={styles.fill} edges={['top']}>
+      <SafeAreaView style={styles.fill} edges={["top"]}>
         <FlatList
           data={results}
           keyExtractor={(item) => item.ref}
@@ -59,7 +69,13 @@ export default function BibleScreen() {
               <ThemedText type="small" themeColor="textSecondary">
                 A small offline starter set (KJV, public domain).
               </ThemedText>
-              <View style={[styles.searchBar, { backgroundColor: theme.backgroundElement }]}>
+              <View
+                style={[
+                  styles.searchBar,
+                  HairlineBorder,
+                  { backgroundColor: theme.backgroundElement },
+                ]}
+              >
                 <Ionicons name="search" size={16} color={theme.textSecondary} />
                 <TextInput
                   value={query}
@@ -75,30 +91,64 @@ export default function BibleScreen() {
                     key={topic}
                     label={TOPIC_LABELS[topic]}
                     active={query === topic}
-                    onPress={() => setQuery(query === topic ? '' : topic)}
+                    onPress={() => setQuery(query === topic ? "" : topic)}
                   />
                 ))}
               </View>
             </View>
           }
           renderItem={({ item }) => (
-            <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.backgroundElement },
+              ]}
+            >
               <ThemedText type="smallBold" themeColor="accent">
                 {item.ref}
               </ThemedText>
               <ThemedText style={styles.verseText}>“{item.text}”</ThemedText>
-              <Pressable onPress={() => saveToJournal(item)} style={styles.saveRow}>
+              <Pressable
+                onPress={() => saveToJournal(item)}
+                style={styles.saveRow}
+              >
                 <Ionicons
-                  name={saved[item.ref] ? 'checkmark-circle' : 'add-circle-outline'}
+                  name={
+                    saved[item.ref] ? "checkmark-circle" : "add-circle-outline"
+                  }
                   size={18}
                   color={theme.accent}
                 />
                 <ThemedText type="small" themeColor="accent">
-                  {saved[item.ref] ? 'Added to journal' : 'Reflect on this in your journal'}
+                  {saved[item.ref]
+                    ? "Added to journal"
+                    : "Reflect on this in your journal"}
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                accessibilityLabel={`Share ${item.ref} with a circle`}
+                onPress={() =>
+                  setShareDraft({
+                    kind: "verse",
+                    sourceId: item.ref,
+                    title: item.ref,
+                    body: `“${item.text}”`,
+                  })
+                }
+                style={styles.saveRow}
+              >
+                <Ionicons name="people-outline" size={18} color={theme.accent} />
+                <ThemedText type="small" themeColor="accent">
+                  Share with a circle
                 </ThemedText>
               </Pressable>
             </View>
           )}
+        />
+        <CircleShareSheet
+          visible={Boolean(shareDraft)}
+          draft={shareDraft}
+          onClose={() => setShareDraft(null)}
         />
       </SafeAreaView>
     </ThemedView>
@@ -118,11 +168,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    lineHeight: 38,
+    lineHeight: 44,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingVertical: 12,
@@ -130,11 +180,12 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
   chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
   card: {
@@ -144,12 +195,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   verseText: {
-    fontStyle: 'italic',
+    fontStyle: "italic",
     lineHeight: 22,
   },
   saveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
 });

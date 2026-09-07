@@ -1,5 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
+
+import { readStorage, removeStorage, writeStorage } from '@/lib/encrypted-storage';
 
 interface WithId {
   id: string;
@@ -17,7 +18,7 @@ export class CollectionStore<T extends WithId> {
 
   private async load() {
     try {
-      const raw = await AsyncStorage.getItem(this.storageKey);
+      const raw = await readStorage(this.storageKey);
       this.items = raw ? (JSON.parse(raw) as T[]) : [];
     } catch {
       this.items = [];
@@ -28,7 +29,7 @@ export class CollectionStore<T extends WithId> {
 
   private async persist() {
     try {
-      await AsyncStorage.setItem(this.storageKey, JSON.stringify(this.items));
+      await writeStorage(this.storageKey, JSON.stringify(this.items));
     } catch {
       // best-effort local persistence; nothing to fall back to on-device
     }
@@ -74,8 +75,22 @@ export class CollectionStore<T extends WithId> {
     this.emit();
     this.persist();
   }
+
+  async clear() {
+    this.items = [];
+    this.emit();
+    await removeStorage(this.storageKey);
+  }
 }
 
 export function useCollection<T extends WithId>(store: CollectionStore<T>): T[] {
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+}
+
+export function useCollectionReady(store: CollectionStore<WithId>): boolean {
+  return useSyncExternalStore(
+    store.subscribe,
+    () => store.isReady(),
+    () => store.isReady()
+  );
 }

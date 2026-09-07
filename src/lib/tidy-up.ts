@@ -1,6 +1,8 @@
 // Mechanical, on-device tidy-up for sermon notes: spelling/punctuation/structure only.
-// It never invents new content — a whitelist of shorthand expansions is the only
+// It never invents new content, a whitelist of shorthand expansions is the only
 // vocabulary it can add, and a guardrail diffs output against input to catch anything else.
+
+import { postAppJson } from '@/lib/app-api';
 
 const EXPANSIONS: Record<string, string> = {
   'w/': 'with',
@@ -15,6 +17,28 @@ const EXPANSIONS: Record<string, string> = {
   btwn: 'between',
   gov: 'government',
   govt: 'government',
+};
+
+const SPELLING_CORRECTIONS: Record<string, string> = {
+  acheive: 'achieve',
+  beleive: 'believe',
+  recieve: 'receive',
+  seperate: 'separate',
+  definately: 'definitely',
+  occured: 'occurred',
+  untill: 'until',
+  wich: 'which',
+  becuase: 'because',
+  mispelling: 'misspelling',
+  didnt: "didn't",
+  doesnt: "doesn't",
+  isnt: "isn't",
+  wasnt: "wasn't",
+  couldnt: "couldn't",
+  wouldnt: "wouldn't",
+  shouldnt: "shouldn't",
+  dont: "don't",
+  cant: "can't",
 };
 
 export interface Expansion {
@@ -48,7 +72,7 @@ function ensureTerminalPunctuation(line: string): string {
   return `${trimmed}.`;
 }
 
-export function tidySermonNotes(raw: string): TidyResult {
+export function tidySermonNotesLocal(raw: string): TidyResult {
   const expansionsApplied: Expansion[] = [];
 
   const tidiedLines = raw.split('\n').map((line) => {
@@ -58,9 +82,9 @@ export function tidySermonNotes(raw: string): TidyResult {
       .trim();
     if (!collapsed) return '';
 
-    const expanded = collapsed.replace(/\S+/g, (word) => {
-      const key = word.toLowerCase();
-      const replacement = EXPANSIONS[key];
+    const expanded = collapsed.replace(/\b[\w/+'’-]+\b|[&+]/g, (word) => {
+      const key = word.toLowerCase().replace('’', "'");
+      const replacement = EXPANSIONS[key] ?? SPELLING_CORRECTIONS[key];
       if (replacement) {
         expansionsApplied.push({ from: word, to: replacement });
         return replacement;
@@ -74,7 +98,11 @@ export function tidySermonNotes(raw: string): TidyResult {
   const tidied = tidiedLines.join('\n');
 
   const inputWords = new Set(tokenizeWords(raw));
-  const allowedExtra = new Set(Object.values(EXPANSIONS).flatMap((value) => tokenizeWords(value)));
+  const allowedExtra = new Set(
+    [...Object.values(EXPANSIONS), ...Object.values(SPELLING_CORRECTIONS)].flatMap((value) =>
+      tokenizeWords(value)
+    )
+  );
   const introducedWords = tokenizeWords(tidied).filter(
     (word) => !inputWords.has(word) && !allowedExtra.has(word)
   );
@@ -89,4 +117,22 @@ export function tidySermonNotes(raw: string): TidyResult {
     fellBack: false,
     expansions: expansionsApplied,
   };
+}
+
+export async function tidySermonNotes(raw: string): Promise<TidyResult> {
+  try {
+    const result = await postAppJson<{ text?: unknown }>('/api/sermon/tidy', { notes: raw });
+    if (typeof result.text !== 'string' || !result.text.trim()) {
+      throw new Error('empty');
+    }
+    const text = result.text.trim();
+    return {
+      text,
+      changed: text !== raw.trim(),
+      fellBack: false,
+      expansions: [],
+    };
+  } catch {
+    return tidySermonNotesLocal(raw);
+  }
 }

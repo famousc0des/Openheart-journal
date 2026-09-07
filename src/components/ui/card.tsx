@@ -7,7 +7,12 @@ export function Card({ style, ...rest }: ViewProps) {
   const theme = useTheme();
   return (
     <View
-      style={[styles.card, SoftShadow, { backgroundColor: theme.backgroundElement }, style]}
+      style={[
+        styles.card,
+        SoftShadow,
+        { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+        style,
+      ]}
       {...rest}
     />
   );
@@ -20,7 +25,7 @@ export function PressableCard({ style, ...rest }: PressableProps) {
       style={(state) => [
         styles.card,
         SoftShadow,
-        { backgroundColor: theme.backgroundElement },
+        { backgroundColor: theme.backgroundElement, borderColor: theme.border },
         typeof style === 'function' ? style(state) : style,
         state.pressed && { opacity: 0.75 },
       ]}

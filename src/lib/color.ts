@@ -16,12 +16,12 @@ export function hexToRgba(hex: string, alpha: number): string {
 }
 
 export const ACCENT_PRESETS = [
-  { name: 'Maroon', value: '#A83E3E' },
-  { name: 'Amber', value: '#B8752E' },
-  { name: 'Forest', value: '#3F6B4A' },
-  { name: 'Teal', value: '#2E7D74' },
-  { name: 'Indigo', value: '#4A4E9E' },
-  { name: 'Plum', value: '#7A4E8C' },
-  { name: 'Slate', value: '#4E5A66' },
-  { name: 'Rose', value: '#B85C7A' },
+  { name: 'Signal', value: '#3B82F6' },
+  { name: 'Iris', value: '#314EF0' },
+  { name: 'Violet', value: '#8B5CF6' },
+  { name: 'Fern', value: '#22C55E' },
+  { name: 'Teal', value: '#0D9488' },
+  { name: 'Ember', value: '#EA580C' },
+  { name: 'Rose', value: '#EC4899' },
+  { name: 'Slate', value: '#64748B' },
 ];
