@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import type { IconName } from '@/lib/icons/app';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { PrimaryActionShadow } from '@/constants/theme';
@@ -7,20 +8,24 @@ import { useTheme } from '@/hooks/use-theme';
 export function Fab({
   onPress,
   icon = 'add',
+  accessibilityLabel = 'Add item',
 }: {
   onPress: () => void;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
+  accessibilityLabel?: string;
 }) {
   const theme = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       onPress={onPress}
       style={({ pressed }) => [
         styles.fab,
         PrimaryActionShadow,
         { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
       ]}>
-      <Ionicons name={icon} size={28} color={theme.onPrimary} />
+      <NamedIcon name={icon} size={28} color={theme.onPrimary} />
     </Pressable>
   );
 }

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { NamedIcon } from '@/components/ui/icon';
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -8,7 +8,7 @@ import { CircleShareSheet } from "@/components/circle-share-sheet";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Pill } from "@/components/ui/pill";
-import { Fonts, HairlineBorder, Radius, SoftShadow, Spacing } from "@/constants/theme";
+import { Fonts, Radius, SoftShadow, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { ShareDraft } from "@/lib/circle-share";
 import { searchVerses } from "@/lib/bible-data";
@@ -72,11 +72,10 @@ export default function BibleScreen() {
               <View
                 style={[
                   styles.searchBar,
-                  HairlineBorder,
-                  { backgroundColor: theme.backgroundElement },
+                  { backgroundColor: theme.backgroundElement, borderColor: theme.border },
                 ]}
               >
-                <Ionicons name="search" size={16} color={theme.textSecondary} />
+                <NamedIcon name="search" size={16} color={theme.textSecondary} />
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
@@ -101,7 +100,7 @@ export default function BibleScreen() {
             <View
               style={[
                 styles.card,
-                { backgroundColor: theme.backgroundElement },
+                { backgroundColor: theme.backgroundElement, borderColor: theme.border },
               ]}
             >
               <ThemedText type="smallBold" themeColor="accent">
@@ -112,7 +111,7 @@ export default function BibleScreen() {
                 onPress={() => saveToJournal(item)}
                 style={styles.saveRow}
               >
-                <Ionicons
+                <NamedIcon
                   name={
                     saved[item.ref] ? "checkmark-circle" : "add-circle-outline"
                   }
@@ -137,7 +136,7 @@ export default function BibleScreen() {
                 }
                 style={styles.saveRow}
               >
-                <Ionicons name="people-outline" size={18} color={theme.accent} />
+                <NamedIcon name="people-outline" size={18} color={theme.accent} />
                 <ThemedText type="small" themeColor="accent">
                   Share with a circle
                 </ThemedText>
@@ -177,6 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: 12,
     borderRadius: Radius.pill,
+    borderWidth: 1,
   },
   searchInput: {
     flex: 1,

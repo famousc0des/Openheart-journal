@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -71,7 +71,7 @@ export default function VaultScreen() {
               onPress={() => router.push({ pathname: '/vault/[id]', params: { id: item.id } })}
               style={[styles.row, { backgroundColor: theme.backgroundElement }]}>
               <View style={[styles.icon, { backgroundColor: theme.accentSoft }]}>
-                <Ionicons
+                <NamedIcon
                   name={item.kind === 'voice' ? 'mic-outline' : item.kind === 'verse' ? 'bookmark-outline' : 'document-text-outline'}
                   size={18}
                   color={theme.accent}
@@ -90,7 +90,7 @@ export default function VaultScreen() {
           ))
         )}
       </Screen>
-      <Fab onPress={() => router.push('/vault/new')} />
+      <Fab accessibilityLabel="Add to vault" onPress={() => router.push('/vault/new')} />
     </View>
   );
 }

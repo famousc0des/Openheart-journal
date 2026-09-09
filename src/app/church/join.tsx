@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -75,7 +75,7 @@ export default function JoinChurchScreen() {
     return (
       <Screen>
         <View style={[styles.iconCircle, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name="home" size={40} color={theme.accent} />
+          <NamedIcon name="home" size={40} color={theme.accent} />
         </View>
         <View style={styles.copy}>
           <ThemedText type="title" style={styles.title}>
@@ -120,7 +120,7 @@ export default function JoinChurchScreen() {
         autoCapitalize="characters"
         autoCorrect={false}
         returnKeyType="done"
-        style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
       />
 
       {notFound && (
@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontSize: 18,
     letterSpacing: 2,
+    borderWidth: 1,
   },
   button: {
     minHeight: 56,

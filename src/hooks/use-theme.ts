@@ -3,6 +3,14 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { hexToRgba } from '@/lib/color';
 import { useScalar } from '@/lib/scalar-store';
 import { accentOverrideStore, themePreferenceStore } from '@/lib/stores';
+import type { ThemePreference } from '@/lib/types';
+
+export function setThemePreference(preference: ThemePreference) {
+  if (Platform.OS !== 'web') {
+    Appearance.setColorScheme(preference === 'system' ? 'unspecified' : preference);
+  }
+  return themePreferenceStore.set(preference);
+}
 
 export function useThemeScheme(): 'light' | 'dark' {
   const preference = useScalar(themePreferenceStore);
@@ -25,3 +33,4 @@ export function useTheme() {
     primary: accentOverride,
   };
 }
+import { Appearance, Platform } from 'react-native';

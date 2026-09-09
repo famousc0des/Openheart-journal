@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import * as Haptics from 'expo-haptics';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -213,7 +213,7 @@ export default function CircleShareThreadScreen() {
                   onPress={() => setReplyTo(null)}
                   hitSlop={8}
                   style={styles.replyChipClose}>
-                  <Ionicons name="close" size={16} color={theme.accent} />
+                  <NamedIcon name="close" size={16} color={theme.accent} />
                 </Pressable>
               </View>
             ) : null}
@@ -234,7 +234,7 @@ export default function CircleShareThreadScreen() {
                   disabled={!draft.trim() || tidying}
                   hitSlop={6}
                   style={[styles.moon, { opacity: draft.trim() ? 1 : 0.35 }]}>
-                  <Ionicons name="moon" size={18} color={theme.textSecondary} />
+                  <NamedIcon name="moon" size={18} color={theme.textSecondary} />
                 </Pressable>
               </View>
               <Pressable
@@ -242,7 +242,7 @@ export default function CircleShareThreadScreen() {
                 disabled={!canSend}
                 onPress={send}
                 style={({ pressed }) => [styles.send, { opacity: canSend ? (pressed ? 0.7 : 1) : 0.35 }]}>
-                <Ionicons name="paper-plane" size={22} color={theme.text} />
+                <NamedIcon name="paper-plane" size={22} color={theme.text} />
               </Pressable>
             </View>
             {remaining < 40 ? (
@@ -260,7 +260,7 @@ export default function CircleShareThreadScreen() {
                 { backgroundColor: theme.accentSoft, opacity: pressed ? 0.85 : 1 },
               ]}>
               <View style={[styles.lockIcon, { backgroundColor: theme.background }]}>
-                <Ionicons name="lock-closed" size={16} color={theme.accent} />
+                <NamedIcon name="lock-closed" size={16} color={theme.accent} />
               </View>
               <View style={styles.lockCopy}>
                 <ThemedText type="smallBold">Comments are Premium</ThemedText>
@@ -292,7 +292,7 @@ function CommentHeader() {
         onPress={() => router.back()}
         hitSlop={10}
         style={styles.headerSide}>
-        <Ionicons name="close" size={22} color={theme.text} />
+        <NamedIcon name="close" size={22} color={theme.text} />
       </Pressable>
     </View>
   );
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     maxHeight: 120,
     borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     paddingLeft: 18,
     paddingRight: 8,
     paddingVertical: 8,

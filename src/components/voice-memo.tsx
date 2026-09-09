@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
@@ -170,8 +170,10 @@ export function VoiceMemo({
             disabled={busy}
             onPress={recorderState.isRecording ? stop : start}
             style={[styles.record, { backgroundColor: theme.primary, opacity: busy ? 0.5 : 1 }]}>
-            <Ionicons
-              name={recorderState.isRecording ? 'stop' : 'mic-outline'}
+            <NamedIcon
+              name="mic-outline"
+              altName="stop"
+              showAlt={recorderState.isRecording}
               size={18}
               color={theme.onPrimary}
             />
@@ -222,7 +224,7 @@ export function VoicePlayer({ uri, levels }: { uri: string; levels?: number[] })
         <Pressable
           onPress={() => void toggle()}
           style={[styles.play, { borderColor: theme.border }]}>
-          <Ionicons name={status.playing ? 'pause' : 'play'} size={16} color={theme.accent} />
+          <NamedIcon name="play" altName="pause" showAlt={status.playing} size={16} color={theme.accent} />
           <ThemedText type="smallBold" themeColor="accent">
             {status.playing ? 'Pause' : 'Play'}
           </ThemedText>

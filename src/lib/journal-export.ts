@@ -4,6 +4,7 @@ import { Alert, Share } from 'react-native';
 
 import { formatDateTime } from '@/lib/date';
 import { entryLabel } from '@/lib/journal-display';
+import { htmlToPlainText, looksLikeHtml, sanitizeRichHtml } from '@/lib/rich-text';
 import { JournalEntry } from '@/lib/types';
 
 function escapeHtml(value: string) {
@@ -14,12 +15,17 @@ function escapeHtml(value: string) {
     .replace(/"/g, '&quot;');
 }
 
+function pageFill(entry: JournalEntry) {
+  const color = entry.pageColor?.trim() ?? '#FFFFFF';
+  return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '#FFFFFF';
+}
+
 function entryAsText(entry: JournalEntry) {
   const parts = [
     entryLabel(entry),
     formatDateTime(entry.createdAt),
     entry.prompt ? `Prompt: ${entry.prompt}` : '',
-    entry.body,
+    htmlToPlainText(entry.body),
     entry.scriptureRefs?.length ? entry.scriptureRefs.join(', ') : '',
   ];
   return parts.filter(Boolean).join('\n\n');
@@ -38,18 +44,21 @@ async function exportEntryPdf(entry: JournalEntry) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
-          body { font-family: -apple-system, Helvetica, sans-serif; color: #131416; padding: 32px; }
+          body { font-family: -apple-system, Helvetica, sans-serif; color: #333333; padding: 32px; background: ${pageFill(entry)}; }
           h1 { font-weight: 500; font-size: 28px; margin: 0 0 8px; }
           .meta { color: #71717A; font-size: 13px; margin-bottom: 24px; }
           .prompt { color: #71717A; font-style: italic; margin-bottom: 16px; }
-          p { font-size: 16px; line-height: 1.6; white-space: pre-wrap; }
+          p, .entry { font-size: 16px; line-height: 1.6; }
+          .entry p { margin: 0 0 12px; }
         </style>
       </head>
       <body>
         <h1>${escapeHtml(entry.title ?? entryLabel(entry))}</h1>
         <div class="meta">${escapeHtml(formatDateTime(entry.createdAt))}</div>
         ${entry.prompt ? `<div class="prompt">${escapeHtml(entry.prompt)}</div>` : ''}
-        <p>${escapeHtml(entry.body)}</p>
+        <div class="entry">${
+          looksLikeHtml(entry.body) ? sanitizeRichHtml(entry.body) : `<p>${escapeHtml(entry.body)}</p>`
+        }</div>
       </body>
     </html>
   `;

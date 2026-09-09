@@ -49,7 +49,7 @@ export default function NewPrayerScreen() {
           placeholderTextColor={theme.textSecondary}
           style={[
             styles.titleInput,
-            { color: theme.text, backgroundColor: theme.backgroundElement },
+            { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement },
           ]}
         />
       </View>
@@ -62,7 +62,7 @@ export default function NewPrayerScreen() {
         multiline
         style={[
           styles.input,
-          { color: theme.text, backgroundColor: theme.backgroundElement },
+          { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement },
         ]}
       />
 
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.four,
+    borderWidth: 1,
   },
   input: {
     minHeight: 100,
@@ -115,6 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.medium,
     padding: Spacing.four,
     textAlignVertical: "top",
+    borderWidth: 1,
   },
   chipRow: {
     flexDirection: "row",

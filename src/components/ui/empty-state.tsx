@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import type { IconName } from '@/lib/icons/app';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -12,7 +13,7 @@ export function EmptyState({
 }: {
   title: string;
   body: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
 }) {
   const theme = useTheme();
 
@@ -20,7 +21,7 @@ export function EmptyState({
     <View style={styles.wrap}>
       {icon ? (
         <View style={[styles.iconWell, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name={icon} size={36} color={theme.accent} />
+          <NamedIcon name={icon} size={36} color={theme.accent} />
         </View>
       ) : null}
       <ThemedText type="subtitle" style={styles.title}>

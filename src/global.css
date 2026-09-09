@@ -1,13 +1,20 @@
 :root {
+  --app-background: #FFFFFF;
   --font-display: SpotifyMixUI-TitleExtraBold, ui-sans-serif, system-ui, sans-serif;
   --font-mono: SpotifyMixUI-Regular, ui-sans-serif, system-ui, sans-serif;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --app-background: #161310; }
+}
+
+:root[data-theme='dark'] { --app-background: #161310; }
 
 html,
 body,
 #root,
 #root > div {
-  background: #f3eee6;
+  background: var(--app-background);
   min-height: 100dvh;
   height: 100%;
 }

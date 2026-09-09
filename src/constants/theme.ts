@@ -1,6 +1,6 @@
 /**
  * "Default" design language, light and dark variants.
- * Light: warm notebook paper, hairline borders, whisper-weight Inter.
+ * Light: white paper, hairline borders, Mix UI type.
  * Dark: warm charcoal paper, the same type and a single Signal Blue accent.
  */
 
@@ -34,13 +34,13 @@ const LightColors = {
   text: '#131416',
   textSecondary: Palette.steel,
   textMuted: Palette.ash,
-  background: '#F3EEE6',
-  backgroundElement: '#FAF7F1',
-  backgroundSelected: '#EBE4D8',
-  softFill: 'rgba(42, 34, 28, 0.045)',
+  background: '#FFFFFF',
+  backgroundElement: '#FFFFFF',
+  backgroundSelected: '#F4F4F5',
+  softFill: 'rgba(15, 16, 18, 0.06)',
   accent: Palette.signalBlue,
   accentSoft: 'rgba(59, 130, 246, 0.1)',
-  border: 'rgba(42, 34, 28, 0.08)',
+  border: 'rgba(15, 16, 18, 0.08)',
   primary: Palette.signalBlue,
   onPrimary: Palette.snow,
   success: Palette.fern,

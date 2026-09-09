@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
 
@@ -156,7 +156,7 @@ export default function LockSettingsScreen() {
             placeholder="••••"
             placeholderTextColor={theme.textSecondary}
             onSubmitEditing={() => void handleSubmit()}
-            style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
           />
           {error ? (
             <ThemedText type="small" themeColor="danger">
@@ -180,7 +180,7 @@ export default function LockSettingsScreen() {
             setError('');
           }}
           style={styles.linkRow}>
-          <Ionicons name="keypad-outline" size={18} color={theme.accent} />
+          <NamedIcon name="keypad-outline" size={18} color={theme.accent} />
           <ThemedText type="smallBold" themeColor="accent">
             Change PIN
           </ThemedText>
@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     fontSize: 22,
     letterSpacing: 8,
+    borderWidth: 1,
   },
   button: {
     minHeight: 50,

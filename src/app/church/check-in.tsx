@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -134,7 +134,7 @@ export default function ChurchCheckInScreen() {
         placeholder="What did you notice, or what are you still sitting with?"
         placeholderTextColor={theme.textSecondary}
         multiline
-        style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
       />
 
       {body.trim().length > 0 && !tidyPreview && (
@@ -145,7 +145,7 @@ export default function ChurchCheckInScreen() {
             styles.tidyButton,
             { backgroundColor: theme.softFill, borderColor: theme.border, opacity: tidying ? 0.6 : 1 },
           ]}>
-          <Ionicons name="sparkles-outline" size={16} color={theme.accent} />
+          <NamedIcon name="sparkles-outline" size={16} color={theme.accent} />
           <ThemedText type="smallBold" themeColor="accent">
             {tidying ? 'Tidying…' : 'Tidy up'}
           </ThemedText>
@@ -161,7 +161,7 @@ export default function ChurchCheckInScreen() {
       {tidyPreview && (
         <View style={[styles.tidyCard, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
           <View style={styles.tidyHeaderRow}>
-            <Ionicons name="sparkles" size={14} color={theme.accent} />
+            <NamedIcon name="sparkles" size={14} color={theme.accent} />
             <ThemedText type="smallBold" themeColor="accent">
               Tidied preview
             </ThemedText>
@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     fontSize: 16,
     textAlignVertical: 'top',
+    borderWidth: 1,
   },
   tidyButton: {
     minHeight: 44,

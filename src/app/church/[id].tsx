@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
@@ -93,7 +93,7 @@ export default function ChurchScreen() {
         </ThemedText>
         {/* Ownership is always visible, no member should wonder who reads what they send. */}
         <View style={styles.ownerRow}>
-          <Ionicons name="person-circle-outline" size={16} color={theme.textSecondary} />
+          <NamedIcon name="person-circle-outline" size={16} color={theme.textSecondary} />
           <ThemedText type="small" themeColor="textSecondary">
             Owned by {church.ownerNames.join(' & ')}
             {church.ownedByMe ? ' (you)' : ''}
@@ -182,7 +182,7 @@ function ThisWeekComposer({ churchId, upcoming }: { churchId: string; upcoming?:
         onChangeText={setScripture}
         placeholder="Scripture, e.g. Romans 8:28"
         placeholderTextColor={theme.textSecondary}
-        style={[styles.fieldInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+        style={[styles.fieldInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
       />
       <TextInput
         value={pointsText}
@@ -193,7 +193,7 @@ function ThisWeekComposer({ churchId, upcoming }: { churchId: string; upcoming?:
         style={[
           styles.fieldInput,
           styles.multilineInput,
-          { color: theme.text, backgroundColor: theme.backgroundElement },
+          { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement },
         ]}
       />
       <View style={styles.stackTight}>
@@ -206,7 +206,7 @@ function ThisWeekComposer({ churchId, upcoming }: { churchId: string; upcoming?:
           style={[
             styles.fieldInput,
             styles.questionInput,
-            { color: theme.text, backgroundColor: theme.backgroundElement },
+            { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement },
           ]}
         />
         <ThemedText
@@ -221,7 +221,7 @@ function ThisWeekComposer({ churchId, upcoming }: { churchId: string; upcoming?:
         disabled={!canSchedule}
         onPress={schedule}
         style={[styles.primaryButton, { backgroundColor: theme.primary, opacity: canSchedule ? 1 : 0.4 }]}>
-        <Ionicons name="paper-plane-outline" size={16} color={theme.onPrimary} />
+        <NamedIcon name="paper-plane-outline" size={16} color={theme.onPrimary} />
         <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
           {upcoming ? 'Update Wednesday post' : `Schedule for Wednesday`}
         </ThemedText>
@@ -277,7 +277,7 @@ function SundaysBrowser({
         onChangeText={setQuery}
         placeholder="Search inside notes"
         placeholderTextColor={theme.textSecondary}
-        style={[styles.fieldInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+        style={[styles.fieldInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
       />
 
       {weeks.length === 0 && ungrouped.length === 0 && (
@@ -362,7 +362,7 @@ function SundaysBrowser({
       )}
 
       <View style={[styles.privacyPanel, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
-        <Ionicons name="shield-checkmark" size={18} color={theme.success} />
+        <NamedIcon name="shield-checkmark" size={18} color={theme.success} />
         <View style={styles.privacyCopy}>
           <ThemedText type="smallBold" themeColor="success">
             What you cannot see
@@ -461,17 +461,17 @@ function ManagePanel({ churchId }: { churchId: string }) {
         </ThemedText>
         <View style={styles.codeActions}>
           <Pressable onPress={shareCode} style={[styles.smallButton, { backgroundColor: theme.primary }]}>
-            <Ionicons name="share-outline" size={14} color={theme.onPrimary} />
+            <NamedIcon name="share-outline" size={14} color={theme.onPrimary} />
             <ThemedText type="small" style={{ color: theme.onPrimary }}>
               Share
             </ThemedText>
           </Pressable>
           <Pressable onPress={rotateCode} style={[styles.smallButton, { borderColor: theme.border, borderWidth: StyleSheet.hairlineWidth }]}>
-            <Ionicons name="refresh" size={14} color={theme.text} />
+            <NamedIcon name="refresh" size={14} color={theme.text} />
             <ThemedText type="small">Rotate</ThemedText>
           </Pressable>
           <Pressable onPress={toggleCode} style={[styles.smallButton, { borderColor: theme.border, borderWidth: StyleSheet.hairlineWidth }]}>
-            <Ionicons
+            <NamedIcon
               name={church.joinCodeActive ? 'pause' : 'play'}
               size={14}
               color={theme.text}
@@ -497,10 +497,10 @@ function ManagePanel({ churchId }: { churchId: string }) {
             placeholderTextColor={theme.textSecondary}
             onSubmitEditing={addCoOwner}
             returnKeyType="done"
-            style={[styles.inlineInput, { color: theme.text, backgroundColor: theme.softFill }]}
+            style={[styles.inlineInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.softFill }]}
           />
           <Pressable onPress={addCoOwner} hitSlop={10}>
-            <Ionicons name="add-circle" size={34} color={theme.accent} />
+            <NamedIcon name="add-circle" size={34} color={theme.accent} />
           </Pressable>
         </View>
         <ThemedText type="small" themeColor="textSecondary" style={styles.helperText}>
@@ -519,10 +519,10 @@ function ManagePanel({ churchId }: { churchId: string }) {
             placeholderTextColor={theme.textSecondary}
             onSubmitEditing={transferOwnership}
             returnKeyType="done"
-            style={[styles.inlineInput, { color: theme.text, backgroundColor: theme.softFill }]}
+            style={[styles.inlineInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.softFill }]}
           />
           <Pressable onPress={transferOwnership} hitSlop={10}>
-            <Ionicons name="swap-horizontal" size={28} color={theme.danger} />
+            <NamedIcon name="swap-horizontal" size={28} color={theme.danger} />
           </Pressable>
         </View>
       </Card>
@@ -603,7 +603,7 @@ function MemberView({
             style={[
               styles.fieldInput,
               styles.questionInput,
-              { color: theme.text, backgroundColor: theme.softFill },
+              { color: theme.text, borderColor: theme.border, backgroundColor: theme.softFill },
             ]}
           />
           <Pressable
@@ -639,7 +639,7 @@ function MemberView({
       )}
 
       <View style={[styles.privacyPanel, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
-        <Ionicons name="shield-checkmark" size={18} color={theme.success} />
+        <NamedIcon name="shield-checkmark" size={18} color={theme.success} />
         <View style={styles.privacyCopy}>
           <ThemedText type="smallBold" themeColor="success">
             What the owner cannot see
@@ -653,7 +653,7 @@ function MemberView({
       </View>
 
       <Pressable onPress={onLeave} style={styles.leaveButton}>
-        <Ionicons name="exit-outline" size={16} color={theme.danger} />
+        <NamedIcon name="exit-outline" size={16} color={theme.danger} />
         <ThemedText type="smallBold" themeColor="danger">
           Leave church
         </ThemedText>
@@ -676,6 +676,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.medium,
     paddingHorizontal: Spacing.three,
     paddingVertical: 14,
+    borderWidth: 1,
   },
   multilineInput: { minHeight: 110, textAlignVertical: 'top' },
   questionInput: { minHeight: 80, textAlignVertical: 'top' },
@@ -721,6 +722,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     paddingHorizontal: Spacing.two,
     paddingVertical: 0,
+    borderWidth: 1,
   },
   helperText: { lineHeight: 18 },
   questionText: { fontSize: 17, lineHeight: 24, marginTop: 4 },

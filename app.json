@@ -7,13 +7,13 @@
     "icon": "./assets/images/icon.png",
     "scheme": "openheartjournal",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#F3EEE6",
+    "backgroundColor": "#FFFFFF",
     "ios": {
       "icon": "./assets/expo.icon",
-      "backgroundColor": "#F3EEE6"
+      "backgroundColor": "#FFFFFF"
     },
     "android": {
-      "backgroundColor": "#F3EEE6",
+      "backgroundColor": "#FFFFFF",
       "permissions": [
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.POST_NOTIFICATIONS"
@@ -35,12 +35,23 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F3EEE6",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 76,
+          "dark": {
+            "backgroundColor": "#161310"
+          }
         }
       ],
       "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Openheart to add photos to your journal pages.",
+          "cameraPermission": "Allow Openheart to take photos for your journal pages.",
+          "microphonePermission": false
+        }
+      ],
       "expo-image",
       "expo-secure-store",
       "expo-sharing",

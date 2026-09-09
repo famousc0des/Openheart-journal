@@ -1,18 +1,19 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, type TextProps } from 'react-native';
 
 import { Fonts, ThemeColor, Tracking } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { EmojiText } from '@/lib/with-emoji-fallback';
 
 export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
   themeColor?: ThemeColor;
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+export function ThemedText({ style, type = 'default', themeColor, children, ...rest }: ThemedTextProps) {
   const theme = useTheme();
 
   return (
-    <Text
+    <EmojiText
       style={[
         { color: theme[themeColor ?? 'text'], includeFontPadding: false },
         type === 'default' && styles.default,
@@ -25,8 +26,9 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'code' && styles.code,
         style,
       ]}
-      {...rest}
-    />
+      {...rest}>
+      {children}
+    </EmojiText>
   );
 }
 

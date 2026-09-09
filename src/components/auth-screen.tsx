@@ -1,4 +1,4 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { NamedIcon } from '@/components/ui/icon';
 import { useRef, useState } from "react";
 import {
   Alert,
@@ -9,7 +9,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -169,7 +168,7 @@ export function AuthScreen({
                       },
                     ]}
                   >
-                    <Ionicons
+                    <NamedIcon
                       name="chevron-back"
                       size={25}
                       color={theme.text}
@@ -188,14 +187,9 @@ export function AuthScreen({
                   <ThemedText style={styles.welcomeTitle}>
                     {isSignUp ? "Create Your" : "Welcome To"}
                   </ThemedText>
-                  {/* Emoji lives in a sibling Text (not nested) so it inherits no
-                      font family and renders with the system emoji font. */}
-                  <View style={styles.welcomeRow}>
-                    <ThemedText style={styles.welcomeTitle}>
-                      {isSignUp ? "Openheart Space" : "Openheart"}
-                    </ThemedText>
-                    <Text style={styles.welcomeEmoji}>🌟</Text>
-                  </View>
+                  <ThemedText style={styles.welcomeTitle}>
+                    {isSignUp ? "Openheart Space" : "Openheart"}
+                  </ThemedText>
                   <ThemedText
                     themeColor="textSecondary"
                     style={styles.introCopy}
@@ -229,7 +223,7 @@ export function AuthScreen({
                           onChangeText={setName}
                           style={[styles.input, { color: theme.text }]}
                         />
-                        <Ionicons
+                        <NamedIcon
                           name="person-outline"
                           size={23}
                           color={theme.textSecondary}
@@ -260,7 +254,7 @@ export function AuthScreen({
                       onChangeText={setEmail}
                       style={[styles.input, { color: theme.text }]}
                     />
-                    <Ionicons
+                    <NamedIcon
                       name="mail-outline"
                       size={23}
                       color={theme.textSecondary}
@@ -316,7 +310,7 @@ export function AuthScreen({
                           ]}
                         >
                           {rememberMe && (
-                            <Ionicons
+                            <NamedIcon
                               name="checkmark"
                               size={15}
                               color={theme.background}
@@ -389,7 +383,7 @@ export function AuthScreen({
                           ]}
                         >
                           {acceptedTerms && (
-                            <Ionicons
+                            <NamedIcon
                               name="checkmark"
                               size={15}
                               color={theme.background}
@@ -478,7 +472,7 @@ export function AuthScreen({
                     { transform: [{ scale: heartScale }] },
                   ]}
                 >
-                  <Ionicons name="heart" size={38} color={theme.accent} />
+                  <NamedIcon name="heart" size={38} color={theme.accent} />
                 </Animated.View>
                 <ThemedText style={styles.setupTitle}>
                   Setting up your journal…
@@ -526,8 +520,10 @@ function PasswordToggle({
       hitSlop={12}
       onPress={onPress}
     >
-      <Ionicons
-        name={visible ? "eye-outline" : "eye-off-outline"}
+      <NamedIcon
+        name="eye-off-outline"
+        altName="eye-outline"
+        showAlt={visible}
         size={24}
         color={theme.textSecondary}
       />
@@ -565,17 +561,6 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     letterSpacing: Tracking.heading,
   },
-  welcomeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  // No fontFamily on purpose: as a sibling (not nested) Text it uses the
-  // platform default font, which always falls back to the color emoji font.
-  welcomeEmoji: {
-    fontSize: 26,
-    lineHeight: 36,
-  },
   introCopy: { maxWidth: 410, marginTop: 8, fontSize: 14, lineHeight: 20 },
   form: { gap: 10 },
   fieldLabel: {
@@ -585,20 +570,24 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   inputShell: {
-    minHeight: 50,
+    height: 52,
     flexDirection: "row",
     alignItems: "center",
     borderRadius: Radius.medium,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     paddingHorizontal: 16,
   },
   input: {
     flex: 1,
-    minHeight: 50,
+    height: 52,
     fontFamily: Fonts.regular,
+    fontSize: 15,
+    lineHeight: 20,
     paddingVertical: 0,
     paddingRight: 10,
-    fontSize: 15,
+    margin: 0,
+    textAlignVertical: "center",
+    includeFontPadding: false,
   },
   rememberRow: {
     minHeight: 40,
