@@ -1,5 +1,5 @@
-import { CollectionStore } from '@/lib/collection-store';
 import { MemoryScalar, ScalarStore } from '@/lib/scalar-store';
+import { FirestoreCollectionStore, FirestoreScalarStore } from '@/lib/firestore-sync';
 import {
   Church,
   ChurchHours,
@@ -21,38 +21,43 @@ import {
   WeeklyReply,
 } from '@/lib/types';
 
-export const journalStore = new CollectionStore<JournalEntry>('openheart.journal.v1');
-export const prayerStore = new CollectionStore<Prayer>('openheart.prayers.v1');
-export const sermonStore = new CollectionStore<SermonNote>('openheart.sermons.v1');
-export const circlesStore = new CollectionStore<UserCircle>('openheart.circles.v1');
-export const circleMemberStore = new CollectionStore<CircleMember>('openheart.circleMembers.v1');
-export const circleInviteStore = new CollectionStore<CircleInvite>('openheart.circleInvites.v1');
-export const circleShareStore = new CollectionStore<CircleShare>('openheart.circleShares.v1');
-export const circleCommentStore = new CollectionStore<CircleComment>('openheart.circleComments.v1');
-export const churchStore = new CollectionStore<Church>('openheart.churches.v1');
-export const weeklyPostStore = new CollectionStore<WeeklyPost>('openheart.weeklyPosts.v1');
-export const weeklyReplyStore = new CollectionStore<WeeklyReply>('openheart.weeklyReplies.v1');
-export const sentChurchNoteStore = new CollectionStore<SentChurchNote>('openheart.sentChurchNotes.v1');
-export const vaultStore = new CollectionStore<VaultItem>('openheart.vault.v1');
-export const churchHoursStore = new ScalarStore<ChurchHours>('openheart.churchHours.v1', DEFAULT_CHURCH_HOURS);
-export const displayNameStore = new ScalarStore<string>('openheart.displayName.v1', '');
-export const profilePhotoUriStore = new ScalarStore<string>('openheart.profilePhotoUri.v1', '');
-export const profileLocationStore = new ScalarStore<string>('openheart.profileLocation.v1', '');
-export const seenBadgeIdsStore = new ScalarStore<string[]>('openheart.seenBadgeIds.v1', []);
-export const isPremiumStore = new ScalarStore<boolean>('openheart.isPremium.v1', false);
-export const accentOverrideStore = new ScalarStore<string | null>('openheart.accentOverride.v1', null);
+// Account data: synced to Firestore under users/{uid}/<name>, cached locally
+// per-account for instant, offline-friendly reads.
+export const journalStore = new FirestoreCollectionStore<JournalEntry>('journal');
+export const prayerStore = new FirestoreCollectionStore<Prayer>('prayers');
+export const sermonStore = new FirestoreCollectionStore<SermonNote>('sermons');
+export const circlesStore = new FirestoreCollectionStore<UserCircle>('circles');
+export const circleMemberStore = new FirestoreCollectionStore<CircleMember>('circleMembers');
+export const circleInviteStore = new FirestoreCollectionStore<CircleInvite>('circleInvites');
+export const circleShareStore = new FirestoreCollectionStore<CircleShare>('circleShares');
+export const circleCommentStore = new FirestoreCollectionStore<CircleComment>('circleComments');
+export const churchStore = new FirestoreCollectionStore<Church>('churches');
+export const weeklyPostStore = new FirestoreCollectionStore<WeeklyPost>('weeklyPosts');
+export const weeklyReplyStore = new FirestoreCollectionStore<WeeklyReply>('weeklyReplies');
+export const sentChurchNoteStore = new FirestoreCollectionStore<SentChurchNote>('sentChurchNotes');
+export const vaultStore = new FirestoreCollectionStore<VaultItem>('vault');
+
+export const churchHoursStore = new FirestoreScalarStore<ChurchHours>('churchHours', DEFAULT_CHURCH_HOURS);
+export const displayNameStore = new FirestoreScalarStore<string>('displayName', '');
+export const profilePhotoUriStore = new FirestoreScalarStore<string>('profilePhotoUri', '');
+export const profileLocationStore = new FirestoreScalarStore<string>('profileLocation', '');
+export const seenBadgeIdsStore = new FirestoreScalarStore<string[]>('seenBadgeIds', []);
+export const isPremiumStore = new FirestoreScalarStore<boolean>('isPremium', false);
+export const accentOverrideStore = new FirestoreScalarStore<string | null>('accentOverride', null);
+export const themePreferenceStore = new FirestoreScalarStore<ThemePreference>('themePreference', 'system');
+export const notificationPrefsStore = new FirestoreScalarStore<NotificationPrefs>(
+  'notificationPrefs',
+  DEFAULT_NOTIFICATION_PREFS
+);
+
+// Device/session state: intentionally local-only, not part of account data.
 export const hasOnboardedStore = new ScalarStore<boolean>('openheart.hasOnboarded.v1', false);
 export const hasAccountStore = new ScalarStore<boolean>('openheart.hasAccount.v1', false);
 export const accountEmailStore = new ScalarStore<string>('openheart.accountEmail.v1', '');
 export const isAuthenticatedStore = new ScalarStore<boolean>('openheart.isAuthenticated.v1', false);
 export const rememberMeStore = new ScalarStore<boolean>('openheart.rememberMe.v1', true);
-export const themePreferenceStore = new ScalarStore<ThemePreference>('openheart.themePreference.v1', 'system');
 export const pinEnabledStore = new ScalarStore<boolean>('openheart.pinEnabled.v1', false);
 export const biometricUnlockStore = new ScalarStore<boolean>('openheart.biometricUnlock.v1', false);
-export const notificationPrefsStore = new ScalarStore<NotificationPrefs>(
-  'openheart.notificationPrefs.v1',
-  DEFAULT_NOTIFICATION_PREFS
-);
 export const sessionAuthStore = new MemoryScalar(false);
 export const isLockedStore = new MemoryScalar(false);
 export const showStartScreenStore = new MemoryScalar(true);

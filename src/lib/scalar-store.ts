@@ -78,10 +78,19 @@ export class MemoryScalar<T> {
   }
 }
 
-export function useScalar<T>(store: ScalarStore<T> | MemoryScalar<T>): T {
+interface ScalarLike<T> {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => T;
+}
+
+interface HydratedScalarLike<T> extends ScalarLike<T> {
+  getHydratedSnapshot: () => boolean;
+}
+
+export function useScalar<T>(store: ScalarLike<T>): T {
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
-export function useScalarHydrated<T>(store: ScalarStore<T>): boolean {
+export function useScalarHydrated<T>(store: HydratedScalarLike<T>): boolean {
   return useSyncExternalStore(store.subscribe, store.getHydratedSnapshot, store.getHydratedSnapshot);
 }

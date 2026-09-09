@@ -1,6 +1,13 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import type { Analytics } from 'firebase/analytics';
+import { initializeAuth, getAuth, type Auth } from 'firebase/auth';
+// `getReactNativePersistence` is only resolved via Metro's "react-native"
+// package-export condition; tsc's Node resolution doesn't see it in the types.
+// @ts-expect-error - see above
+import { getReactNativePersistence } from 'firebase/auth';
+import { getFirestore, initializeFirestore, type Firestore } from 'firebase/firestore';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBBCiIujl8kUf9hQ_EQxoyts1hX_9nGpzg',
@@ -14,6 +21,28 @@ const firebaseConfig = {
 
 // Reuse the default app during Fast Refresh.
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// `initializeAuth`/`initializeFirestore` throw if called more than once against
+// the same app (e.g. on Fast Refresh), so fall back to the existing instance.
+export const auth: Auth =
+  Platform.OS === 'web'
+    ? getAuth(app)
+    : (() => {
+        try {
+          return initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) });
+        } catch {
+          return getAuth(app);
+        }
+      })();
+
+export const db: Firestore = (() => {
+  try {
+    // Long polling avoids WebSocket/HTTP2 issues in the iOS/Android simulator.
+    return initializeFirestore(app, { experimentalForceLongPolling: Platform.OS !== 'web' });
+  } catch {
+    return getFirestore(app);
+  }
+})();
 
 let analyticsPromise: Promise<Analytics | null> | undefined;
 

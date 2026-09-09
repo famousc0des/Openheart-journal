@@ -26,6 +26,7 @@ import { Fonts, HairlineBorder, Radius, Spacing, Tracking } from '@/constants/th
 import { useTheme, useThemeScheme } from '@/hooks/use-theme';
 import { clearAllAppData } from '@/lib/app-data';
 import { useCollection } from '@/lib/collection-store';
+import { signOutUser } from '@/lib/firebase-auth';
 import { computeStreak } from '@/lib/date';
 import { evaluateProfileBadges, type ProfileBadgeStatus } from '@/lib/profile-badges';
 import { promptProfilePhoto } from '@/lib/pick-profile-photo';
@@ -278,6 +279,7 @@ export default function ProfileScreen() {
     sessionAuthStore.set(false);
     void isAuthenticatedStore.set(false);
     showStartScreenStore.set(true);
+    void signOutUser();
     router.replace('/');
   }
 
