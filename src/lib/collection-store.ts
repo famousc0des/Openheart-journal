@@ -83,11 +83,20 @@ export class CollectionStore<T extends WithId> {
   }
 }
 
-export function useCollection<T extends WithId>(store: CollectionStore<T>): T[] {
+interface CollectionLike<T> {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => T[];
+}
+
+interface ReadyCollectionLike extends CollectionLike<WithId> {
+  isReady: () => boolean;
+}
+
+export function useCollection<T extends WithId>(store: CollectionLike<T>): T[] {
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
-export function useCollectionReady(store: CollectionStore<WithId>): boolean {
+export function useCollectionReady(store: ReadyCollectionLike): boolean {
   return useSyncExternalStore(
     store.subscribe,
     () => store.isReady(),

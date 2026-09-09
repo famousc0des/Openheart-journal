@@ -18,9 +18,13 @@ import { LegalDocument } from "@/components/legal-document";
 import { ThemedText } from "@/components/themed-text";
 import { Fonts, Radius, Spacing, Tracking } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { clearAllAppData } from "@/lib/app-data";
+import {
+  authErrorMessage,
+  sendResetEmail,
+  signInWithEmail,
+  signUpWithEmail,
+} from "@/lib/firebase-auth";
 import { PRIVACY_BODY, PRIVACY_TITLE, TERMS_BODY, TERMS_TITLE } from "@/lib/legal";
-import { createLocalAccount } from "@/lib/local-account";
 
 type AuthMode = "signUp" | "signIn";
 export type AuthResult = {
@@ -70,10 +74,26 @@ export function AuthScreen({
   async function submit() {
     if (!canSubmit || isSettingUp) return;
 
+    if (isSignUp) {
+      if (!acceptedTerms) {
+        Alert.alert("Almost there", "Please accept the Terms of Service and Privacy Policy.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        Alert.alert("Passwords don't match", "Please re-enter your password.");
+        return;
+      }
+    }
+
     try {
-      await createLocalAccount(email, password);
-    } catch {
-      // Prototype has no backend; continue even if local storage fails.
+      if (isSignUp) {
+        await signUpWithEmail(email, password, name);
+      } else {
+        await signInWithEmail(email, password);
+      }
+    } catch (error) {
+      Alert.alert(isSignUp ? "Couldn't create account" : "Couldn't log in", authErrorMessage(error));
+      return;
     }
 
     setIsSettingUp(true);
@@ -112,21 +132,25 @@ export function AuthScreen({
   }
 
   function forgotPassword() {
+    if (!email.trim()) {
+      Alert.alert("Forgot password", "Enter your email address above first.");
+      return;
+    }
     Alert.alert(
-      "Forgot password",
-      "This account lives only on this device, so there is no email reset. You can erase everything here and start over.",
+      "Reset your password",
+      `We'll send a password reset link to ${email.trim()}.`,
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Erase everything",
-          style: "destructive",
+          text: "Send link",
           onPress: () => {
-            void clearAllAppData().then(() => {
-              setEmail("");
-              setPassword("");
-              setName("");
-              setMode("signUp");
-            });
+            sendResetEmail(email)
+              .then(() => {
+                Alert.alert("Check your email", "Follow the link we sent to reset your password.");
+              })
+              .catch((error: unknown) => {
+                Alert.alert("Couldn't send reset email", authErrorMessage(error));
+              });
           },
         },
       ],

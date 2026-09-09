@@ -1,7 +1,11 @@
 import * as Notifications from 'expo-notifications';
 
+import { deleteUser } from 'firebase/auth';
+
 import { deletePin } from '@/lib/app-lock';
 import { resetEncryptionKey, wipeOpenheartStorage } from '@/lib/encrypted-storage';
+import { auth } from '@/lib/firebase';
+import { signOutUser } from '@/lib/firebase-auth';
 import { deleteLocalAccount } from '@/lib/local-account';
 import {
   accountEmailStore,
@@ -80,6 +84,17 @@ export async function clearAllAppData() {
   sessionAuthStore.set(false);
   isLockedStore.set(false);
   showStartScreenStore.set(true);
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await deleteUser(user);
+    } catch {
+      // Firebase requires a recent login to delete the account; fall back to
+      // just signing out so the device-local data is still wiped below.
+      await signOutUser().catch(() => {});
+    }
+  }
 
   await deleteLocalAccount();
   await deletePin();

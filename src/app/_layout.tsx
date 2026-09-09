@@ -16,6 +16,7 @@ import { OnboardingScreen } from '@/components/onboarding-screen';
 import { Colors, Fonts } from '@/constants/theme';
 import { applyInterDefaults } from '@/lib/apply-inter';
 import { initializeFirebaseAnalytics } from '@/lib/firebase';
+import { authReadyStore, authUserStore, signOutUser } from '@/lib/firebase-auth';
 import { useThemeScheme } from '@/hooks/use-theme';
 import '@/lib/notifications';
 import { CHURCH_CHECKIN_ROUTE, scheduleDummySundayNotification } from '@/lib/reminders';
@@ -27,7 +28,6 @@ import {
   displayNameStore,
   hasAccountStore,
   hasOnboardedStore,
-  isAuthenticatedStore,
   isLockedStore,
   pinEnabledStore,
   rememberMeStore,
@@ -71,30 +71,24 @@ export default function RootLayout() {
   const themeReady = useScalarHydrated(themePreferenceStore);
   const accentReady = useScalarHydrated(accentOverrideStore);
   const accountEmail = useScalar(accountEmailStore);
-  const persistedAuth = useScalar(isAuthenticatedStore);
-  const sessionAuth = useScalar(sessionAuthStore);
-  const rememberMe = useScalar(rememberMeStore);
+  const authUser = useScalar(authUserStore);
+  const authReady = useScalar(authReadyStore);
   const pinEnabled = useScalar(pinEnabledStore);
+  const sessionAuth = useScalar(sessionAuthStore);
   const locked = useScalar(isLockedStore);
   const showStartScreen = useScalar(showStartScreenStore);
   const churchHours = useScalar(churchHoursStore);
   const churchHoursReady = useScalarHydrated(churchHoursStore);
-  const isAuthenticated = sessionAuth || (rememberMe && persistedAuth);
+  const isAuthenticated = Boolean(authUser);
   const hasOnboardedReady = useScalarHydrated(hasOnboardedStore);
-  const hasAccountReady = useScalarHydrated(hasAccountStore);
-  const accountEmailReady = useScalarHydrated(accountEmailStore);
-  const isAuthenticatedReady = useScalarHydrated(isAuthenticatedStore);
-  const rememberMeReady = useScalarHydrated(rememberMeStore);
   const pinReady = useScalarHydrated(pinEnabledStore);
-  const authStateReady =
-    hasOnboardedReady &&
-    hasAccountReady &&
-    accountEmailReady &&
-    isAuthenticatedReady &&
-    rememberMeReady &&
-    pinReady &&
-    churchHoursReady;
+  const authStateReady = hasOnboardedReady && authReady && pinReady && (!isAuthenticated || churchHoursReady);
   const appReady = authStateReady && fontsLoaded && themeReady && accentReady;
+
+  useEffect(() => {
+    void accountEmailStore.set(authUser?.email ?? '');
+    if (authUser) void hasAccountStore.set(true);
+  }, [authUser]);
 
   if (fontsLoaded) applyInterDefaults();
 
@@ -147,21 +141,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
-      const remembered = rememberMeStore.getSnapshot() && isAuthenticatedStore.getSnapshot();
-      if (next === 'background' && pinEnabledStore.getSnapshot() && (sessionAuthStore.getSnapshot() || remembered)) {
-        isLockedStore.set(true);
-      }
+      if (next !== 'background' || !authUserStore.getSnapshot()) return;
+      if (pinEnabledStore.getSnapshot()) isLockedStore.set(true);
+      if (!rememberMeStore.getSnapshot()) void signOutUser();
     });
     return () => sub.remove();
   }, []);
 
   function completeAuthentication(result: AuthResult) {
     if (result.mode === 'signUp' && result.name) void displayNameStore.set(result.name);
-    void accountEmailStore.set(result.email);
-    void hasAccountStore.set(true);
     void hasOnboardedStore.set(true);
     void rememberMeStore.set(result.rememberMe);
-    void isAuthenticatedStore.set(result.rememberMe);
     sessionAuthStore.set(true);
     isLockedStore.set(false);
     showStartScreenStore.set(false);
