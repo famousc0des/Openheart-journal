@@ -15,6 +15,7 @@ import { GrainSurface } from '@/components/grain-overlay';
 import { OnboardingScreen } from '@/components/onboarding-screen';
 import { Colors, Fonts } from '@/constants/theme';
 import { applyInterDefaults } from '@/lib/apply-inter';
+import { initializeFirebaseAnalytics } from '@/lib/firebase';
 import { useThemeScheme } from '@/hooks/use-theme';
 import '@/lib/notifications';
 import { CHURCH_CHECKIN_ROUTE, scheduleDummySundayNotification } from '@/lib/reminders';
@@ -55,6 +56,10 @@ function navTheme(scheme: 'light' | 'dark'): Theme {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    void initializeFirebaseAnalytics();
+  }, []);
+
   const [fontsLoaded] = useFonts({
     'SpotifyMixUI-Regular': require('../../assets/Spotify Mix UI/spotify_mix_ui_regular.otf'),
     'SpotifyMixUI-Bold': require('../../assets/Spotify Mix UI/spotify_mix_ui_bold.otf'),
