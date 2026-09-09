@@ -28,7 +28,7 @@ export function TimeField({
 }) {
   const theme = useTheme();
   return (
-    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
       <ThemedText type="smallBold">{label}</ThemedText>
       <ThemedText type="subtitle" style={styles.clock}>
         {formatClock(hour, minute)}
@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.large,
     padding: Spacing.three,
     gap: Spacing.two,
+    borderWidth: 1,
   },
   clock: {
     fontSize: 28,
@@ -71,6 +72,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
   },
 });

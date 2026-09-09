@@ -74,7 +74,7 @@ export default function NewVaultItemScreen() {
           onChangeText={setTitle}
           placeholder="Title (optional)"
           placeholderTextColor={theme.textSecondary}
-          style={[styles.field, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+          style={[styles.field, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
         />
       ) : null}
 
@@ -85,7 +85,7 @@ export default function NewVaultItemScreen() {
             onChangeText={setVerseQuery}
             placeholder="Search a verse"
             placeholderTextColor={theme.textSecondary}
-            style={[styles.field, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            style={[styles.field, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
           />
           {verses.map((verse) => {
             const active = verseRef === verse.ref;
@@ -112,7 +112,7 @@ export default function NewVaultItemScreen() {
           placeholder={kind === 'voice' ? 'A caption, if you want one' : 'Write the note'}
           placeholderTextColor={theme.textSecondary}
           multiline
-          style={[styles.body, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+          style={[styles.body, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
         />
       )}
 
@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     fontFamily: Fonts.regular,
     fontSize: 16,
+    borderWidth: 1,
   },
   body: {
     minHeight: 140,
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     fontSize: 16,
     textAlignVertical: 'top',
+    borderWidth: 1,
   },
   verse: {
     gap: 4,

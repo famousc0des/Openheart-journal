@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet } from 'react-native';
@@ -72,7 +72,7 @@ export default function VaultItemScreen() {
         <Pressable
           onPress={() => setShareOpen(true)}
           style={[styles.button, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name="share-outline" size={16} color={theme.accent} />
+          <NamedIcon name="share-outline" size={16} color={theme.accent} />
           <ThemedText type="smallBold" themeColor="accent">
             Share with a circle
           </ThemedText>

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -52,7 +52,7 @@ export default function CircleInviteScreen() {
   return (
     <Screen>
       <View style={[styles.iconCircle, { backgroundColor: theme.accentSoft }]}> 
-        <Ionicons name="people" size={40} color={theme.accent} />
+        <NamedIcon name="people" size={40} color={theme.accent} />
       </View>
       <View style={styles.copy}>
         <ThemedText type="title" style={styles.title}>

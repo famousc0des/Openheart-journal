@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -125,7 +125,7 @@ export default function NewSermonNoteScreen() {
           onChangeText={setTitle}
           placeholder="e.g. Sunday: Rest as Resistance"
           placeholderTextColor={theme.textSecondary}
-          style={[styles.titleInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+          style={[styles.titleInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
         />
       </View>
 
@@ -137,7 +137,7 @@ export default function NewSermonNoteScreen() {
               key={mode}
               onPress={() => setSourceMode(mode)}
               style={[styles.sourceTab, { backgroundColor: active ? theme.primary : theme.softFill }]}>
-              <Ionicons
+              <NamedIcon
                 name={mode === 'write' ? 'create-outline' : 'logo-youtube'}
                 size={17}
                 color={active ? theme.onPrimary : theme.textSecondary}
@@ -160,7 +160,7 @@ export default function NewSermonNoteScreen() {
             keyboardType="url"
             placeholder="Paste a YouTube link"
             placeholderTextColor={theme.textSecondary}
-            style={[styles.titleInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            style={[styles.titleInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
           />
           <Pressable
             disabled={!isYouTubeUrl(youtubeUrl) || transcribing}
@@ -172,7 +172,7 @@ export default function NewSermonNoteScreen() {
                 opacity: isYouTubeUrl(youtubeUrl) && !transcribing ? 1 : 0.45,
               },
             ]}>
-            <Ionicons name="sparkles-outline" size={17} color={theme.onPrimary} />
+            <NamedIcon name="sparkles-outline" size={17} color={theme.onPrimary} />
             <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
               {transcribing ? 'Working…' : 'Transcribe video'}
             </ThemedText>
@@ -203,7 +203,7 @@ export default function NewSermonNoteScreen() {
           placeholderTextColor={theme.textSecondary}
           multiline
           autoFocus={sourceMode === 'write'}
-          style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
         />
       </View>
 
@@ -212,7 +212,7 @@ export default function NewSermonNoteScreen() {
           onPress={() => void previewTidy()}
           disabled={tidying}
           style={[styles.tidyButton, { backgroundColor: theme.softFill, borderColor: theme.border, opacity: tidying ? 0.6 : 1 }]}>
-          <Ionicons name="sparkles-outline" size={16} color={theme.accent} />
+          <NamedIcon name="sparkles-outline" size={16} color={theme.accent} />
           <ThemedText type="smallBold" themeColor="accent">
             {tidying ? 'Tidying…' : 'Tidy up before saving'}
           </ThemedText>
@@ -228,7 +228,7 @@ export default function NewSermonNoteScreen() {
       {tidyPreview && (
         <View style={[styles.tidyCard, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
           <View style={styles.tidyHeaderRow}>
-            <Ionicons name="sparkles" size={14} color={theme.accent} />
+            <NamedIcon name="sparkles" size={14} color={theme.accent} />
             <ThemedText type="smallBold" themeColor="accent">
               Tidied preview
             </ThemedText>
@@ -281,6 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderRadius: Radius.medium,
     padding: Spacing.three,
+    borderWidth: 1,
   },
   input: {
     minHeight: 220,
@@ -290,6 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.medium,
     padding: Spacing.three,
     textAlignVertical: 'top',
+    borderWidth: 1,
   },
   sourceTabs: { flexDirection: 'row', gap: Spacing.two },
   sourceTab: {

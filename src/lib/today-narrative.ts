@@ -1,10 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/lib/icons/app';
 
 import { moodOption } from '@/lib/prompts';
+import { htmlToPlainText } from '@/lib/rich-text';
 import type { CheckInPeriod, JournalEntry, Prayer, ScriptureVerse, SermonNote } from '@/lib/types';
 
 export type StickerTone = {
-  name: keyof typeof Ionicons.glyphMap;
+  name: IconName;
   bg: string;
   color: string;
   rotate: `${number}deg`;
@@ -35,7 +36,7 @@ const STICKERS = {
 } as const satisfies Record<string, StickerTone>;
 
 function clip(text: string, max = 92): string {
-  const clean = text.replace(/\s+/g, ' ').trim();
+  const clean = htmlToPlainText(text).replace(/\s+/g, ' ').trim();
   if (clean.length <= max) return clean;
   return `${clean.slice(0, max).trimEnd()}…`;
 }

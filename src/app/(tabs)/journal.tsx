@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -8,20 +8,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EmptyState } from '@/components/ui/empty-state';
+import { HeaderAddButton } from '@/components/ui/header-add-button';
 import { Fonts, HairlineBorder, Radius, Spacing, Tracking } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useTheme, useThemeScheme } from '@/hooks/use-theme';
 import { formatRelative } from '@/lib/date';
 import { useCollection } from '@/lib/collection-store';
 import { exportJournalEntry } from '@/lib/journal-export';
-import { CARD_PALETTE, entryIcon, entryLabel } from '@/lib/journal-display';
+import { CARD_PALETTE, DARK_CARD_PALETTE, entryIcon, entryLabel } from '@/lib/journal-display';
 import { listLayout } from '@/lib/motion';
+import { htmlToPlainText } from '@/lib/rich-text';
 import { journalStore } from '@/lib/stores';
 import { JournalEntry } from '@/lib/types';
 
 export default function JournalScreen() {
   const theme = useTheme();
+  const scheme = useThemeScheme();
+  const styles = createStyles(theme);
   const entries = useCollection(journalStore);
   const [query, setQuery] = useState('');
+
+  const cardPalette = scheme === 'dark' ? DARK_CARD_PALETTE : CARD_PALETTE;
 
   const filtered = useMemo(() => {
     const sorted = [...entries].sort(
@@ -31,7 +37,7 @@ export default function JournalScreen() {
     if (!q) return sorted;
     return sorted.filter(
       (entry) =>
-        entry.body.toLowerCase().includes(q) ||
+        htmlToPlainText(entry.body).toLowerCase().includes(q) ||
         entry.title?.toLowerCase().includes(q) ||
         entry.prompt?.toLowerCase().includes(q)
     );
@@ -62,7 +68,7 @@ export default function JournalScreen() {
             ListHeaderComponent={
               <View style={styles.header}>
                 <View style={styles.headerRow}>
-                  <View>
+                  <View style={styles.headerCopy}>
                     <ThemedText type="title" style={styles.title}>
                       Journal
                     </ThemedText>
@@ -70,19 +76,17 @@ export default function JournalScreen() {
                       {entries.length} {entries.length === 1 ? 'ENTRY' : 'ENTRIES'}
                     </ThemedText>
                   </View>
-                  <Pressable
+                  <HeaderAddButton
+                    accessibilityLabel="Write a new journal entry"
                     onPress={() => router.push('/journal/new')}
-                    style={[styles.addButton, { backgroundColor: theme.primary }]}>
-                    <Ionicons name="add" size={24} color={theme.onPrimary} />
-                  </Pressable>
+                  />
                 </View>
                 <View
                   style={[
                     styles.searchBar,
-                    HairlineBorder,
                     { backgroundColor: theme.backgroundElement, borderColor: theme.border },
                   ]}>
-                  <Ionicons name="search" size={16} color={theme.textSecondary} />
+                  <NamedIcon name="search" size={16} color={theme.textSecondary} />
                   <TextInput
                     value={query}
                     onChangeText={setQuery}
@@ -110,20 +114,20 @@ export default function JournalScreen() {
                 style={[
                   styles.card,
                   HairlineBorder,
-                  { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] },
+                  { backgroundColor: cardPalette[index % cardPalette.length], borderColor: theme.border },
                 ]}>
-                <Ionicons
+                <NamedIcon
                   name={entryIcon(item)}
                   size={96}
-                  color="rgba(19, 20, 22, 0.06)"
+                  color={theme.softFill}
                   style={styles.cardWatermark}
                 />
                 <View style={styles.cardTopRow}>
                   <View style={styles.cardIconBadge}>
-                    <Ionicons name={entryIcon(item)} size={16} color={theme.accent} />
+                    <NamedIcon name={entryIcon(item)} size={16} color={theme.accent} />
                   </View>
                   <Pressable hitSlop={10} onPress={() => openMenu(item)}>
-                    <Ionicons name="ellipsis-horizontal" size={20} color="rgba(19,20,22,0.55)" />
+                    <NamedIcon name="ellipsis-horizontal" size={20} color={theme.textSecondary} />
                   </Pressable>
                 </View>
                 <ThemedText style={styles.cardTitle} numberOfLines={3}>
@@ -139,7 +143,7 @@ export default function JournalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => StyleSheet.create({
   fill: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.four,
@@ -157,7 +161,12 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerCopy: {
+    flex: 1,
+    flexShrink: 1,
   },
   title: {
     fontSize: 34,
@@ -167,13 +176,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: 12,
     borderRadius: Radius.pill,
+    borderWidth: 1,
   },
   searchInput: {
     flex: 1,
@@ -208,21 +211,21 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.65)',
+    backgroundColor: theme.backgroundElement,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: theme.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTitle: {
-    color: '#131416',
+    color: theme.text,
     fontFamily: Fonts.regular,
     fontSize: 22,
     lineHeight: 28,
     letterSpacing: Tracking.heading,
   },
   cardMeta: {
-    color: '#71717A',
+    color: theme.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 13,
     letterSpacing: Tracking.body,

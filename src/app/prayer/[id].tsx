@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -92,7 +92,7 @@ export default function PrayerDetailScreen() {
           <Pressable
             onPress={() => setShareOpen(true)}
             style={[styles.shareButton, { backgroundColor: theme.primary }]}>
-            <Ionicons name="people-outline" size={17} color={theme.onPrimary} />
+            <NamedIcon name="people-outline" size={17} color={theme.onPrimary} />
             <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
               Share
             </ThemedText>
@@ -125,7 +125,7 @@ export default function PrayerDetailScreen() {
                     backgroundColor: active ? hexToRgba(meta.color, 0.12) : 'transparent',
                   },
                 ]}>
-                <Ionicons name={meta.icon} size={15} color={active ? meta.color : theme.text} />
+                <NamedIcon name={meta.icon} size={15} color={active ? meta.color : theme.text} />
                 <ThemedText style={active ? { color: meta.color } : undefined} themeColor={active ? undefined : 'text'}>
                   {meta.label}
                 </ThemedText>
@@ -143,13 +143,13 @@ export default function PrayerDetailScreen() {
             onChangeText={setUpdateText}
             placeholder="Add how this is unfolding..."
             placeholderTextColor={theme.textSecondary}
-            style={[styles.updateInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            style={[styles.updateInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
           />
           <Pressable
             onPress={addUpdate}
             disabled={!updateText.trim()}
             style={[styles.addButton, { backgroundColor: theme.primary, opacity: updateText.trim() ? 1 : 0.5 }]}>
-            <Ionicons name="arrow-up" size={18} color={theme.onPrimary} />
+            <NamedIcon name="arrow-up" size={18} color={theme.onPrimary} />
           </Pressable>
         </View>
 
@@ -170,7 +170,7 @@ export default function PrayerDetailScreen() {
       </View>
 
       <Pressable onPress={remove} style={styles.deleteButton}>
-        <Ionicons name="trash-outline" size={16} color={theme.danger} />
+        <NamedIcon name="trash-outline" size={16} color={theme.danger} />
         <ThemedText type="smallBold" themeColor="danger">
           Delete prayer
         </ThemedText>
@@ -238,6 +238,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     borderRadius: Radius.medium,
     padding: Spacing.three,
+    borderWidth: 1,
   },
   addButton: {
     width: 40,

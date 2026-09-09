@@ -1,11 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/lib/icons/app';
 
 import { CheckInPeriod, Mood } from '@/lib/types';
 
 export interface MoodOption {
   value: Mood;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   color: string;
 }
 

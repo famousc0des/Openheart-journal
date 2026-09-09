@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/lib/icons/app';
 
 import { PrayerState } from '@/lib/types';
 
 export const PRAYER_STATE_META: Record<
   PrayerState,
-  { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }
+  { label: string; color: string; icon: IconName }
 > = {
   praying: { label: 'Still praying', color: '#3B82F6', icon: 'flame-outline' },
   answered: { label: 'Answered', color: '#22C55E', icon: 'checkmark-circle-outline' },

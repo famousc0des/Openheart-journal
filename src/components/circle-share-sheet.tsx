@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import { SuccessTick } from '@/components/ui/success-tick';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { isSharedToCircle, SHARE_KIND_META, ShareDraft, shareToCircle } from '@/lib/circle-share';
+import { membersOfCircle } from '@/lib/circle-membership';
 import { withBuiltInCircles } from '@/lib/circles';
 import { useCollection } from '@/lib/collection-store';
 import { circleMemberStore, circleShareStore, circlesStore } from '@/lib/stores';
@@ -28,6 +30,7 @@ export function CircleShareSheet({
   const available = withBuiltInCircles(circles);
   const kindLabel = draft ? SHARE_KIND_META[draft.kind].label.toLowerCase() : 'this';
   const [picked, setPicked] = useState<string[]>([]);
+  const [sharedWith, setSharedWith] = useState<string[] | null>(null);
 
   const alreadyShared = useMemo(() => {
     if (!draft) return new Set<string>();
@@ -48,6 +51,7 @@ export function CircleShareSheet({
   }, [available, draft, shares]);
 
   useEffect(() => {
+    setSharedWith(null);
     if (!visible || !draft) {
       setPicked([]);
       return;
@@ -66,9 +70,9 @@ export function CircleShareSheet({
   }
 
   function shareNow() {
-    if (!draft || !canShareNow) return;
+    if (!draft || !canShareNow || sharedWith) return;
     pendingIds.forEach((circleId) => shareToCircle(circleId, draft));
-    onClose();
+    setSharedWith(available.filter((circle) => pendingIds.includes(circle.id)).map((circle) => circle.name));
   }
 
   return (
@@ -81,86 +85,110 @@ export function CircleShareSheet({
             { backgroundColor: theme.background, paddingBottom: Math.max(insets.bottom, Spacing.three) },
           ]}>
           <View style={styles.handle} />
-          <View style={styles.header}>
-            <View style={styles.headerCopy}>
-              <ThemedText type="title" style={styles.title}>
-                Share with a circle
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
-                {draft?.title || `This ${kindLabel}`}
-              </ThemedText>
-            </View>
-            <Pressable
-              accessibilityLabel="Close"
-              onPress={onClose}
-              hitSlop={8}
-              style={styles.close}>
-              <Ionicons name="close" size={22} color={theme.text} />
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            {available.map((circle) => {
-              const memberCount = members.filter((member) => member.circleId === circle.id).length;
-              const posted = alreadyShared.has(circle.id);
-              const selected = posted || picked.includes(circle.id);
-              return (
+          {sharedWith ? (
+            <>
+              <View style={styles.confirmation} accessibilityLiveRegion="polite" accessible>
+                <SuccessTick />
+                <ThemedText type="title" style={[styles.title, styles.centered]}>
+                  It has been shared.
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.centered}>
+                  {sharedWith.join(', ')}
+                </ThemedText>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Done"
+                onPress={onClose}
+                style={({ pressed }) => [styles.shareNow, { backgroundColor: theme.primary, opacity: pressed ? 0.88 : 1 }]}>
+                <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>Done</ThemedText>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <View style={styles.header}>
+                <View style={styles.headerCopy}>
+                  <ThemedText type="title" style={styles.title}>
+                    Share with a circle
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
+                    {draft?.title || `This ${kindLabel}`}
+                  </ThemedText>
+                </View>
                 <Pressable
-                  key={circle.id}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: selected, disabled: posted }}
-                  disabled={posted}
-                  onPress={() => togglePick(circle.id)}
-                  style={({ pressed }) => [
-                    styles.row,
-                    {
-                      backgroundColor: selected ? theme.accentSoft : theme.backgroundElement,
-                      opacity: pressed && !posted ? 0.85 : 1,
-                    },
-                  ]}>
-                  <View style={[styles.check, { borderColor: selected ? theme.accent : theme.border }]}>
-                    <Ionicons
-                      name={posted ? 'checkmark' : selected ? 'checkmark-circle-outline' : 'people-outline'}
-                      size={18}
-                      color={theme.accent}
-                    />
-                  </View>
-                  <View style={styles.rowCopy}>
-                    <ThemedText type="smallBold">{circle.name}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {memberCount === 0
-                        ? 'Just you for now'
-                        : `${memberCount} member${memberCount === 1 ? '' : 's'}`}
-                    </ThemedText>
-                  </View>
-                  {posted ? (
-                    <ThemedText type="smallBold" themeColor="accent">
-                      Shared
-                    </ThemedText>
-                  ) : selected ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      Selected
-                    </ThemedText>
-                  ) : null}
+                  accessibilityLabel="Close"
+                  onPress={onClose}
+                  hitSlop={8}
+                  style={styles.close}>
+                  <NamedIcon name="close" size={22} color={theme.text} />
                 </Pressable>
-              );
-            })}
-          </ScrollView>
+              </View>
 
-          {canShareNow ? (
-            <Pressable
-              accessibilityLabel="Share now"
-              onPress={shareNow}
-              style={({ pressed }) => [
-                styles.shareNow,
-                { backgroundColor: theme.primary, opacity: pressed ? 0.88 : 1 },
-              ]}>
-              <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
-                Share now
-                {pendingIds.length > 1 ? ` · ${pendingIds.length}` : ''}
-              </ThemedText>
-            </Pressable>
-          ) : null}
+              <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+                {available.map((circle) => {
+                  const memberCount = membersOfCircle(members, circle.id).length;
+                  const posted = alreadyShared.has(circle.id);
+                  const selected = posted || picked.includes(circle.id);
+                  return (
+                    <Pressable
+                      key={circle.id}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: selected, disabled: posted }}
+                      disabled={posted}
+                      onPress={() => togglePick(circle.id)}
+                      style={({ pressed }) => [
+                        styles.row,
+                        {
+                          backgroundColor: selected ? theme.accentSoft : theme.backgroundElement,
+                          opacity: pressed && !posted ? 0.85 : 1,
+                        },
+                      ]}>
+                      <View style={[styles.check, { borderColor: selected ? theme.accent : theme.border }]}>
+                        <NamedIcon
+                          name={posted ? 'checkmark' : selected ? 'checkmark-circle-outline' : 'people-outline'}
+                          size={18}
+                          color={theme.accent}
+                        />
+                      </View>
+                      <View style={styles.rowCopy}>
+                        <ThemedText type="smallBold">{circle.name}</ThemedText>
+                        <ThemedText type="small" themeColor="textSecondary">
+                          {memberCount === 0
+                            ? 'Just you for now'
+                            : `${memberCount} member${memberCount === 1 ? '' : 's'}`}
+                        </ThemedText>
+                      </View>
+                      {posted ? (
+                        <ThemedText type="smallBold" themeColor="accent">
+                          Shared
+                        </ThemedText>
+                      ) : selected ? (
+                        <ThemedText type="small" themeColor="textSecondary">
+                          Selected
+                        </ThemedText>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {canShareNow ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Share now"
+                  onPress={shareNow}
+                  style={({ pressed }) => [
+                    styles.shareNow,
+                    { backgroundColor: theme.primary, opacity: pressed ? 0.88 : 1 },
+                  ]}>
+                  <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
+                    Share now
+                    {pendingIds.length > 1 ? ` · ${pendingIds.length}` : ''}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+            </>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -194,6 +222,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   headerCopy: { flex: 1, gap: 2 },
+  confirmation: { alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.four },
+  centered: { textAlign: 'center' },
   title: { fontSize: 25, lineHeight: 34 },
   close: {
     width: 44,

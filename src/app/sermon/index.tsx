@@ -62,7 +62,7 @@ export default function SermonScreen() {
             </PressableCard>
           )}
         />
-        <Fab onPress={() => router.push('/sermon/new')} />
+        <Fab accessibilityLabel="Add sermon note" onPress={() => router.push('/sermon/new')} />
       </SafeAreaView>
     </ThemedView>
   );

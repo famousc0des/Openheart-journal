@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,7 +55,7 @@ export function AppLockScreen() {
       <SafeAreaView style={styles.fill}>
         <View style={styles.body}>
           <View style={[styles.heart, { backgroundColor: theme.accentSoft, borderColor: theme.border }]}>
-            <Ionicons name="lock-closed" size={28} color={theme.accent} />
+            <NamedIcon name="lock-closed" size={28} color={theme.accent} />
           </View>
           <ThemedText style={styles.title}>Openheart is locked</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
@@ -96,7 +96,7 @@ export function AppLockScreen() {
                   pressed && key ? { opacity: 0.7 } : null,
                 ]}>
                 {key === 'del' ? (
-                  <Ionicons name="backspace-outline" size={22} color={theme.text} />
+                  <NamedIcon name="backspace-outline" size={22} color={theme.text} />
                 ) : (
                   <ThemedText style={styles.keyLabel}>{key}</ThemedText>
                 )}
@@ -112,7 +112,7 @@ export function AppLockScreen() {
                 })
               }
               style={styles.bioButton}>
-              <Ionicons name="scan-outline" size={18} color={theme.accent} />
+              <NamedIcon name="scan-outline" size={18} color={theme.accent} />
               <ThemedText type="smallBold" themeColor="accent">
                 Use Face ID or fingerprint
               </ThemedText>

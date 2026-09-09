@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import type { IconName } from '@/lib/icons/app';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { CircleAvatar } from '@/components/circle-avatar';
@@ -10,11 +11,13 @@ function Action({
   icon,
   count,
   active,
+  accessibilityLabel,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   count?: number;
   active?: boolean;
+  accessibilityLabel: string;
   onPress?: () => void;
 }) {
   const theme = useTheme();
@@ -23,11 +26,14 @@ function Action({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: !onPress, ...(active !== undefined ? { selected: active } : {}) }}
       onPress={onPress}
       disabled={!onPress}
       hitSlop={8}
       style={({ pressed }) => [styles.action, pressed && onPress && { opacity: 0.6 }]}>
-      <Ionicons name={icon} size={18} color={color} />
+      <NamedIcon name={icon} size={18} color={color} />
       {label ? (
         <ThemedText type="small" style={[styles.actionCount, { color }]}>
           {label}
@@ -95,7 +101,7 @@ export function SocialNoteCard({
               hitSlop={10}
               accessibilityLabel="More options"
               style={({ pressed }) => [styles.more, pressed && { opacity: 0.6 }]}>
-              <Ionicons name="ellipsis-horizontal" size={18} color={theme.textSecondary} />
+              <NamedIcon name="ellipsis-horizontal" size={18} color={theme.textSecondary} />
             </Pressable>
           ) : null}
         </View>
@@ -113,14 +119,15 @@ export function SocialNoteCard({
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
           <Action
+            accessibilityLabel={liked ? 'Unlike note' : 'Like note'}
             icon={liked ? 'heart' : 'heart-outline'}
             count={likeCount}
             active={liked}
             onPress={onLike}
           />
-          <Action icon="chatbubble-outline" count={commentCount} onPress={onComment} />
+          <Action accessibilityLabel="Comment on note" icon="chatbubble-outline" count={commentCount} onPress={onComment} />
         </View>
-        <Action icon="arrow-redo-outline" onPress={onShare} />
+        <Action accessibilityLabel="Share note" icon="arrow-redo-outline" onPress={onShare} />
       </View>
     </View>
   );

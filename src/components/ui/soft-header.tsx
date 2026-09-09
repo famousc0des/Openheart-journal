@@ -1,25 +1,31 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import type { IconName } from '@/lib/icons/app';
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { HairlineBorder, Radius, Spacing } from '@/constants/theme';
+import { Fonts, HairlineBorder, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function CircleIconButton({
   icon,
   onPress,
+  accessibilityLabel,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   onPress?: () => void;
+  accessibilityLabel?: string;
 }) {
   const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       style={[styles.circle, HairlineBorder, { backgroundColor: theme.softFill, borderColor: theme.border }]}
       hitSlop={8}>
-      <Ionicons name={icon} size={19} color={theme.text} />
+      <NamedIcon name={icon} size={19} color={theme.text} />
     </Pressable>
   );
 }
@@ -27,15 +33,19 @@ export function CircleIconButton({
 export function SoftHeader({
   title,
   onBack,
+  left,
   right,
 }: {
   title?: string;
   onBack?: () => void;
-  right?: React.ReactNode;
+  left?: ReactNode;
+  right?: ReactNode;
 }) {
   return (
     <View style={styles.row}>
-      <CircleIconButton icon="chevron-back" onPress={onBack ?? (() => router.back())} />
+      <View style={styles.side}>
+        {left ?? <CircleIconButton icon="chevron-back" accessibilityLabel="Back" onPress={onBack ?? (() => router.back())} />}
+      </View>
       {title ? (
         <ThemedText type="smallBold" style={styles.title} numberOfLines={1}>
           {title}
@@ -43,7 +53,7 @@ export function SoftHeader({
       ) : (
         <View style={{ flex: 1 }} />
       )}
-      <View style={styles.right}>{right}</View>
+      <View style={[styles.side, styles.sideEnd]}>{right}</View>
     </View>
   );
 }
@@ -58,8 +68,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   circle: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -67,11 +77,15 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 16,
+    fontFamily: Fonts.bold,
+    fontSize: 17,
     lineHeight: 24,
   },
-  right: {
-    minWidth: 40,
+  side: {
+    minWidth: 44,
+    alignItems: 'flex-start',
+  },
+  sideEnd: {
     alignItems: 'flex-end',
   },
 });

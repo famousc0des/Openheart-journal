@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
@@ -141,7 +141,7 @@ export default function SermonDetailScreen() {
         )}
         {note.youtubeUrl && (
           <View style={styles.youtubeSource}>
-            <Ionicons name="logo-youtube" size={15} color={theme.accent} />
+            <NamedIcon name="logo-youtube" size={15} color={theme.accent} />
             <ThemedText type="small" themeColor="accent" numberOfLines={1} style={{ flex: 1 }}>
               YouTube transcript
             </ThemedText>
@@ -189,7 +189,7 @@ export default function SermonDetailScreen() {
           onPress={() => void runTidyUp()}
           disabled={tidying}
           style={[styles.button, { backgroundColor: theme.primary, opacity: tidying ? 0.6 : 1 }]}>
-          <Ionicons name="sparkles-outline" size={16} color={theme.onPrimary} />
+          <NamedIcon name="sparkles-outline" size={16} color={theme.onPrimary} />
           <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
             {tidying ? 'Tidying…' : 'Tidy up'}
           </ThemedText>
@@ -199,14 +199,14 @@ export default function SermonDetailScreen() {
       <Pressable
         onPress={saveToJournal}
         style={[styles.button, { backgroundColor: theme.backgroundElement }]}>
-        <Ionicons name="book-outline" size={16} color={theme.text} />
+        <NamedIcon name="book-outline" size={16} color={theme.text} />
         <ThemedText type="smallBold">{saved ? 'Saved to journal ✓' : 'Save to journal'}</ThemedText>
       </Pressable>
 
       <Pressable
         onPress={() => setShareOpen(true)}
         style={[styles.button, { backgroundColor: theme.backgroundElement }]}>
-        <Ionicons name="people-outline" size={16} color={theme.text} />
+        <NamedIcon name="people-outline" size={16} color={theme.text} />
         <ThemedText type="smallBold">Share with a circle</ThemedText>
       </Pressable>
 
@@ -214,7 +214,7 @@ export default function SermonDetailScreen() {
         <Pressable
           onPress={() => setSendingToChurchId(churches[0].id)}
           style={[styles.button, { backgroundColor: theme.backgroundElement }]}>
-          <Ionicons name="home-outline" size={16} color={theme.text} />
+          <NamedIcon name="home-outline" size={16} color={theme.text} />
           <ThemedText type="smallBold">
             {sentToChurch ? 'Sent to church ✓. Send again' : 'Send to church'}
           </ThemedText>
@@ -283,7 +283,7 @@ export default function SermonDetailScreen() {
       )}
 
       <Pressable onPress={remove} style={styles.deleteButton}>
-        <Ionicons name="trash-outline" size={16} color={theme.danger} />
+        <NamedIcon name="trash-outline" size={16} color={theme.danger} />
         <ThemedText type="smallBold" themeColor="danger">
           Delete note
         </ThemedText>

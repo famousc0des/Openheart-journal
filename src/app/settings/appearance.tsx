@@ -1,11 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Pill } from '@/components/ui/pill';
 import { Screen } from '@/components/ui/screen';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { setThemePreference, useTheme } from '@/hooks/use-theme';
 import { ACCENT_PRESETS } from '@/lib/color';
 import { useScalar } from '@/lib/scalar-store';
 import { accentOverrideStore, isPremiumStore, themePreferenceStore } from '@/lib/stores';
@@ -33,13 +33,13 @@ export default function AppearanceScreen() {
               key={option.value}
               label={option.label}
               active={themePreference === option.value}
-              onPress={() => void themePreferenceStore.set(option.value)}
+              onPress={() => void setThemePreference(option.value)}
             />
           ))}
         </View>
         <View style={styles.lockedBlock}>
           <View style={[styles.lockIcon, { backgroundColor: theme.accentSoft }]}>
-            <Ionicons name="color-palette" size={32} color={theme.accent} />
+            <NamedIcon name="color-palette" size={32} color={theme.accent} />
           </View>
           <ThemedText type="subtitle" style={styles.lockedTitle}>
             Custom colors are a premium feature
@@ -69,7 +69,7 @@ export default function AppearanceScreen() {
             key={option.value}
             label={option.label}
             active={themePreference === option.value}
-            onPress={() => void themePreferenceStore.set(option.value)}
+            onPress={() => void setThemePreference(option.value)}
           />
         ))}
       </View>
@@ -83,7 +83,7 @@ export default function AppearanceScreen() {
               onPress={() => accentOverrideStore.set(preset.value)}
               style={styles.swatchWrap}>
               <View style={[styles.swatch, { backgroundColor: preset.value }]}>
-                {active && <Ionicons name="checkmark" size={22} color="#fff" />}
+                {active && <NamedIcon name="checkmark" size={22} color="#fff" />}
               </View>
               <ThemedText type="small">{preset.name}</ThemedText>
             </Pressable>

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -63,7 +63,7 @@ export default function NewChurchScreen() {
     return (
       <Screen>
         <View style={[styles.iconCircle, { backgroundColor: theme.accentSoft }]}>
-          <Ionicons name="home" size={36} color={theme.accent} />
+          <NamedIcon name="home" size={36} color={theme.accent} />
         </View>
         <View style={styles.copy}>
           <ThemedText type="title" style={styles.title}>
@@ -83,7 +83,7 @@ export default function NewChurchScreen() {
         </Card>
 
         <Pressable onPress={shareCode} style={[styles.button, { backgroundColor: theme.primary }]}>
-          <Ionicons name="share-outline" size={16} color={theme.onPrimary} />
+          <NamedIcon name="share-outline" size={16} color={theme.onPrimary} />
           <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
             Share the code
           </ThemedText>
@@ -124,7 +124,7 @@ export default function NewChurchScreen() {
         placeholder="e.g. Grace Chapel, Tuesday Bible Study"
         placeholderTextColor={theme.textSecondary}
         returnKeyType="done"
-        style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+        style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
       />
 
       <Pressable
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: 0,
     fontSize: 17,
+    borderWidth: 1,
   },
   button: {
     minHeight: 56,

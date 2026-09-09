@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/lib/icons/app';
 
 import { JournalEntry } from '@/lib/types';
 
@@ -12,13 +12,15 @@ export const CARD_PALETTE = [
   '#FDF6DF', // butter
 ];
 
+export const DARK_CARD_PALETTE = ['#202D40', '#22362B', '#3C2D24', '#32273E', '#3C2730', '#383321'];
+
 export function entryLabel(entry: JournalEntry): string {
   if (entry.type === 'checkin') return entry.period === 'morning' ? 'Morning check-in' : 'Evening check-in';
   if (entry.type === 'sermon') return entry.title ?? 'From a sermon note';
   return entry.title ?? 'Journal entry';
 }
 
-export function entryIcon(entry: JournalEntry): keyof typeof Ionicons.glyphMap {
+export function entryIcon(entry: JournalEntry): IconName {
   if (entry.type === 'checkin') return entry.period === 'morning' ? 'sunny' : 'moon';
   if (entry.type === 'sermon') return 'chatbubble-ellipses';
   return 'create';

@@ -5,12 +5,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { Appearance, AppState, Platform, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppLockScreen } from '@/components/app-lock-screen';
 import { AuthScreen, type AuthResult } from '@/components/auth-screen';
 import { ChurchHoursOnboarding } from '@/components/church-hours-onboarding';
-import { GrainOverlay } from '@/components/grain-overlay';
+import { GrainSurface } from '@/components/grain-overlay';
 import { OnboardingScreen } from '@/components/onboarding-screen';
 import { Colors, Fonts } from '@/constants/theme';
 import { applyInterDefaults } from '@/lib/apply-inter';
@@ -20,6 +21,7 @@ import { CHURCH_CHECKIN_ROUTE, scheduleDummySundayNotification } from '@/lib/rem
 import { useScalar, useScalarHydrated } from '@/lib/scalar-store';
 import {
   accountEmailStore,
+  accentOverrideStore,
   churchHoursStore,
   displayNameStore,
   hasAccountStore,
@@ -30,6 +32,7 @@ import {
   rememberMeStore,
   sessionAuthStore,
   showStartScreenStore,
+  themePreferenceStore,
 } from '@/lib/stores';
 
 void SplashScreen.preventAutoHideAsync();
@@ -59,6 +62,9 @@ export default function RootLayout() {
     'SpotifyMixUI-TitleExtraBold': require('../../assets/Spotify Mix UI/spotify_mix_ui_title_extrabold.otf'),
   });
   const scheme = useThemeScheme();
+  const themePreference = useScalar(themePreferenceStore);
+  const themeReady = useScalarHydrated(themePreferenceStore);
+  const accentReady = useScalarHydrated(accentOverrideStore);
   const accountEmail = useScalar(accountEmailStore);
   const persistedAuth = useScalar(isAuthenticatedStore);
   const sessionAuth = useScalar(sessionAuthStore);
@@ -83,7 +89,7 @@ export default function RootLayout() {
     rememberMeReady &&
     pinReady &&
     churchHoursReady;
-  const appReady = authStateReady && fontsLoaded;
+  const appReady = authStateReady && fontsLoaded && themeReady && accentReady;
 
   if (fontsLoaded) applyInterDefaults();
 
@@ -93,7 +99,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     void SystemUI.setBackgroundColorAsync(Colors[scheme].background);
+    if (Platform.OS === 'web') {
+      document.documentElement.dataset.theme = scheme;
+      document.documentElement.style.colorScheme = scheme;
+    }
   }, [scheme]);
+
+  useEffect(() => {
+    if (themeReady && Platform.OS !== 'web') {
+      Appearance.setColorScheme(themePreference === 'system' ? 'unspecified' : themePreference);
+    }
+  }, [themePreference, themeReady]);
 
   useEffect(() => {
     if (!appReady || !pinEnabled || !isAuthenticated || sessionAuth) return;
@@ -154,23 +170,26 @@ export default function RootLayout() {
   if (!appReady) return null;
 
   return (
+    <GestureHandlerRootView style={styles.fill}>
     <ThemeProvider value={navTheme(scheme)}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <View style={[styles.fill, { backgroundColor: Colors[scheme].background }]}>
-        <GrainOverlay />
+      <GrainSurface style={{ backgroundColor: Colors[scheme].background }}>
         {isAuthenticated && (
           <Stack
             screenOptions={{
               headerShown: false,
               headerBackTitle: '',
               headerBackButtonDisplayMode: 'minimal',
+              headerStyle: { backgroundColor: Colors[scheme].background },
+              headerShadowVisible: false,
+              headerTintColor: Colors[scheme].text,
               headerTitleStyle: {
                 fontFamily: Fonts.medium,
               },
               headerBackTitleStyle: {
                 fontFamily: Fonts.regular,
               },
-              contentStyle: { backgroundColor: 'transparent' },
+              contentStyle: { backgroundColor: Colors[scheme].background },
               animation: 'slide_from_right',
               freezeOnBlur: false,
             }}>
@@ -205,10 +224,8 @@ export default function RootLayout() {
             <Stack.Screen name="vault/[id]" options={{ headerShown: true, title: 'Vault' }} />
             <Stack.Screen name="settings/appearance" options={{ headerShown: true, title: 'Appearance' }} />
             <Stack.Screen name="settings/lock" options={{ headerShown: true, title: 'App lock' }} />
-            <Stack.Screen
-              name="settings/notifications"
-              options={{ headerShown: true, title: 'Notifications' }}
-            />
+            <Stack.Screen name="settings/notifications" options={{ headerShown: true, title: 'Notifications' }} />
+            <Stack.Screen name="profile/edit" options={{ headerShown: true, title: 'Edit Profile' }} />
             <Stack.Screen name="legal/terms" options={{ headerShown: true, title: 'Terms of Service' }} />
             <Stack.Screen name="legal/privacy" options={{ headerShown: true, title: 'Privacy Policy' }} />
             <Stack.Screen name="journal/[id]" options={{ headerShown: false }} />
@@ -248,8 +265,9 @@ export default function RootLayout() {
             <AppLockScreen />
           </View>
         )}
-      </View>
+      </GrainSurface>
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 

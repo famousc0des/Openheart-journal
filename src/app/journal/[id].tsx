@@ -1,59 +1,46 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CircleShareSheet } from '@/components/circle-share-sheet';
+import { JournalWritingCanvas } from '@/components/journal-writing-canvas';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CircleIconButton, SoftHeader } from '@/components/ui/soft-header';
-import { Fonts, HairlineBorder, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { verseByRef } from '@/lib/bible-data';
-import { formatDateTime } from '@/lib/date';
-import { CARD_PALETTE, entryLabel } from '@/lib/journal-display';
+import { SoftHeader } from '@/components/ui/soft-header';
+import { Spacing } from '@/constants/theme';
 import { useCollection, useCollectionReady } from '@/lib/collection-store';
-import { journalStore } from '@/lib/stores';
+import { entryLabel } from '@/lib/journal-display';
 import { exportJournalEntry } from '@/lib/journal-export';
-import { moodOption } from '@/lib/prompts';
+import { DEFAULT_PAGE_COLOR } from '@/lib/journal-page';
+import { htmlToPlainText, isRichEmpty, sanitizeRichHtml } from '@/lib/rich-text';
+import { journalStore } from '@/lib/stores';
 
 export default function JournalDetailScreen() {
-  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const entries = useCollection(journalStore);
   const ready = useCollectionReady(journalStore);
   const entry = entries.find((item) => item.id === id);
 
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
+  const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [pageColor, setPageColor] = useState(DEFAULT_PAGE_COLOR);
+  const [prompt, setPrompt] = useState<string | undefined>();
+  const [scriptureRefs, setScriptureRefs] = useState<string[]>([]);
   const initialized = useRef(false);
 
   useEffect(() => {
     if (entry && !initialized.current) {
+      setTitle(entry.title ?? entryLabel(entry));
       setBody(entry.body);
+      setPageColor(entry.pageColor ?? DEFAULT_PAGE_COLOR);
+      setPrompt(entry.prompt);
+      setScriptureRefs(entry.scriptureRefs ?? []);
       initialized.current = true;
     }
   }, [entry]);
-
-  function openMenu() {
-    if (!entry) return;
-    Alert.alert(entryLabel(entry), undefined, [
-      { text: editing ? 'Stop editing' : 'Edit', onPress: () => setEditing((prev) => !prev) },
-      { text: 'Share with a circle', onPress: () => setShareOpen(true) },
-      { text: 'Export', onPress: () => exportJournalEntry(entry) },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          journalStore.remove(entry.id);
-          router.back();
-        },
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }
 
   if (!ready) {
     return <ThemedView style={styles.fill} />;
@@ -73,192 +60,71 @@ export default function JournalDetailScreen() {
   }
 
   function save() {
-    if (!entry) return;
-    journalStore.update(entry.id, { body: body.trim(), updatedAt: new Date().toISOString() });
+    if (!entry || isRichEmpty(body)) return;
+    journalStore.update(entry.id, {
+      title: title.trim() || undefined,
+      body: sanitizeRichHtml(body),
+      pageColor,
+      prompt,
+      scriptureRefs: scriptureRefs.length ? scriptureRefs : undefined,
+      updatedAt: new Date().toISOString(),
+    });
     setEditing(false);
   }
 
-  const mood = moodOption(entry.mood);
-  const bigTitle = entry.title ?? entryLabel(entry);
+  const bigTitle = title.trim() || entryLabel(entry);
 
   return (
-    <ThemedView style={styles.fill}>
-      <SafeAreaView style={styles.fill} edges={['top']}>
-        <SoftHeader right={<CircleIconButton icon="ellipsis-horizontal" onPress={openMenu} />} />
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.metaRow}>
-            <ThemedText type="small" themeColor="textSecondary" style={styles.metaLabel}>
-              {formatDateTime(entry.createdAt).toUpperCase()}
-            </ThemedText>
-            <Pressable
-              onPress={editing ? save : () => setEditing(true)}
-              style={[styles.pillButton, { backgroundColor: editing ? theme.primary : theme.softFill }]}>
-              <ThemedText type="smallBold" style={{ color: editing ? theme.onPrimary : theme.text }}>
-                {editing ? 'Save' : 'Edit'}
-              </ThemedText>
-            </Pressable>
-          </View>
-
-          <ThemedText type="title" style={styles.bigTitle}>
-            {bigTitle}
-          </ThemedText>
-
-          {mood && (
-            <View style={[styles.moodTag, { backgroundColor: theme.accentSoft }]}>
-              <Ionicons name={mood.icon} size={15} color={theme.accent} />
-              <ThemedText type="small" themeColor="accent">
-                {mood.label}
-              </ThemedText>
-            </View>
-          )}
-
-          {entry.prompt && (
-            <ThemedText themeColor="textSecondary" style={styles.promptText}>
-              {entry.prompt}
-            </ThemedText>
-          )}
-
-          {editing ? (
-            <TextInput
-              value={body}
-              onChangeText={setBody}
-              multiline
-              autoFocus
-              style={[styles.bodyInput, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-            />
-          ) : (
-            <ThemedText style={styles.body}>{entry.body}</ThemedText>
-          )}
-
-          {entry.scriptureRefs && entry.scriptureRefs.length > 0 && (
-            <View style={styles.tileRow}>
-              {entry.scriptureRefs.map((ref, index) => {
-                const verse = verseByRef(ref);
-                if (!verse) return null;
-                return (
-                  <View
-                    key={ref}
-                    style={[
-                      styles.tile,
-                      HairlineBorder,
-                      { backgroundColor: CARD_PALETTE[index % CARD_PALETTE.length] },
-                    ]}>
-                    <View style={styles.tileBadge}>
-                      <Ionicons name="bookmark" size={13} color={theme.accent} />
-                    </View>
-                    <ThemedText style={styles.tileRef} numberOfLines={1}>
-                      {verse.ref}
-                    </ThemedText>
-                    <ThemedText style={styles.tileText} numberOfLines={5}>
-                      {verse.text}
-                    </ThemedText>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </ScrollView>
-        <CircleShareSheet
-          visible={shareOpen}
-          draft={{
-            kind: 'journal',
-            sourceId: entry.id,
-            title: bigTitle,
-            body: entry.body,
-          }}
-          onClose={() => setShareOpen(false)}
-        />
-      </SafeAreaView>
-    </ThemedView>
+    <>
+      <JournalWritingCanvas
+        key={`${entry.id}-${editing ? 'edit' : 'read'}`}
+        title={title}
+        onTitleChange={setTitle}
+        body={body}
+        onBodyChange={setBody}
+        pageColor={pageColor}
+        onPageColorChange={(value) => {
+          setPageColor(value);
+          journalStore.update(entry.id, { pageColor: value, updatedAt: new Date().toISOString() });
+        }}
+        prompt={prompt}
+        onPromptChange={setPrompt}
+        scriptureRefs={scriptureRefs}
+        onScriptureRefsChange={setScriptureRefs}
+        canSave={!isRichEmpty(body)}
+        onSave={save}
+        editing={editing}
+        onEdit={() => setEditing(true)}
+        onShare={() => setShareOpen(true)}
+        onExport={() => exportJournalEntry({ ...entry, title: title.trim() || entry.title, body, pageColor })}
+        onDelete={() => {
+          Alert.alert('Delete this entry?', 'This cannot be undone.', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: () => {
+                journalStore.remove(entry.id);
+                router.back();
+              },
+            },
+          ]);
+        }}
+      />
+      <CircleShareSheet
+        visible={shareOpen}
+        draft={{
+          kind: 'journal',
+          sourceId: entry.id,
+          title: bigTitle,
+          body: htmlToPlainText(body),
+        }}
+        onClose={() => setShareOpen(false)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  content: {
-    paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.six * 2,
-    gap: Spacing.three,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  metaLabel: {
-    letterSpacing: 1,
-  },
-  pillButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: Radius.pill,
-  },
-  bigTitle: {
-    fontSize: 32,
-    lineHeight: 44,
-  },
-  moodTag: {
-    flexDirection: 'row',
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: Radius.pill,
-  },
-  promptText: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    lineHeight: 23,
-  },
-  body: {
-    fontSize: 18,
-    lineHeight: 27,
-  },
-  bodyInput: {
-    minHeight: 180,
-    fontFamily: Fonts.regular,
-    fontSize: 18,
-    lineHeight: 27,
-    borderRadius: Radius.medium,
-    padding: Spacing.three,
-    textAlignVertical: 'top',
-  },
-  tileRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginTop: Spacing.two,
-  },
-  tile: {
-    flex: 1,
-    minHeight: 160,
-    borderRadius: Radius.medium,
-    padding: Spacing.three,
-    gap: 6,
-    justifyContent: 'flex-end',
-  },
-  tileBadge: {
-    position: 'absolute',
-    top: Spacing.two,
-    right: Spacing.two,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'rgba(255,255,255,0.65)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tileRef: {
-    color: '#131416',
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-  },
-  tileText: {
-    color: '#71717A',
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    lineHeight: 17,
-  },
 });

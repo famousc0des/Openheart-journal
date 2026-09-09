@@ -1,15 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTheme } from '@/hooks/use-theme';
 import { Fonts, Tracking } from '@/constants/theme';
 import type { DaySource, NarrativeToken, StickerTone } from '@/lib/today-narrative';
+import { EmojiText, splitEmojiParts } from '@/lib/with-emoji-fallback';
 
-const CREAM_INK = '#161513';
-const CREAM_MUTED = 'rgba(22, 21, 19, 0.42)';
-const CREAM_SOFT = 'rgba(22, 21, 19, 0.72)';
 
 export function Sticker({ sticker, size = 34 }: { sticker: StickerTone; size?: number }) {
+  const styles = createStyles(useTheme());
   return (
     <View
       style={[
@@ -21,36 +21,73 @@ export function Sticker({ sticker, size = 34 }: { sticker: StickerTone; size?: n
           backgroundColor: sticker.bg,
         },
       ]}>
-      <Ionicons name={sticker.name} size={size * 0.52} color={sticker.color} />
+      <NamedIcon name={sticker.name} size={size * 0.52} color={sticker.color} />
     </View>
   );
 }
 
-export function NarrativeBlock({ tokens }: { tokens: NarrativeToken[] }) {
+export function NarrativeBlock({
+  tokens,
+  tone = 'paper',
+  compact = false,
+}: {
+  tokens: NarrativeToken[];
+  tone?: 'paper' | 'ink';
+  compact?: boolean;
+}) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  const paper = tone === 'paper';
+  const size = compact ? 16 : 28;
+  const lineHeight = compact ? 24 : 40;
+  const stickerSize = compact ? 22 : 36;
+
   return (
     <View style={styles.narrative}>
       {tokens.map((token, index) => {
         if (token.kind === 'icon') {
           return (
             <View key={`icon-${index}`} style={styles.inlineSticker}>
-              <Sticker sticker={token.sticker} size={36} />
+              <Sticker sticker={token.sticker} size={stickerSize} />
             </View>
           );
         }
 
         return (
-          <Text
+          <EmojiText
             key={`text-${index}`}
-            style={token.kind === 'strong' ? styles.strong : styles.muted}>
+            style={[
+              {
+                fontSize: size,
+                lineHeight,
+                letterSpacing: compact ? Tracking.body : Tracking.heading,
+                fontFamily: token.kind === 'strong' ? Fonts.bold : Fonts.regular,
+                color: paper
+                  ? token.kind === 'strong'
+                    ? theme.text
+                    : theme.textSecondary
+                  : token.kind === 'strong'
+                    ? '#F6F3EE'
+                    : 'rgba(245, 242, 237, 0.42)',
+              },
+            ]}>
             {token.text}
-          </Text>
+          </EmojiText>
         );
       })}
     </View>
   );
 }
 
-export function SourceAvatars({ sources }: { sources: DaySource[] }) {
+export function SourceAvatars({
+  sources,
+  ringColor,
+}: {
+  sources: DaySource[];
+  ringColor?: string;
+}) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const unique = sources.slice(0, 4);
   return (
     <View style={styles.avatarRow}>
@@ -63,9 +100,10 @@ export function SourceAvatars({ sources }: { sources: DaySource[] }) {
               marginLeft: index === 0 ? 0 : -8,
               zIndex: unique.length - index,
               backgroundColor: source.avatar.bg,
+              borderColor: ringColor ?? theme.background,
             },
           ]}>
-          <Ionicons name={source.avatar.name} size={12} color={source.avatar.color} />
+          <NamedIcon name={source.avatar.name} size={12} color={source.avatar.color} />
         </View>
       ))}
     </View>
@@ -73,9 +111,10 @@ export function SourceAvatars({ sources }: { sources: DaySource[] }) {
 }
 
 function HighlightedSnippet({ text, highlights }: { text: string; highlights: string[] }) {
+  const styles = createStyles(useTheme());
   const needles = highlights.filter((item) => item.trim().length > 2);
-  if (needles.length === 0) {
-    return <Text style={styles.snippet}>{text}</Text>;
+  if (needles.length === 0 || splitEmojiParts(text).some((part) => part.kind === 'emoji')) {
+    return <EmojiText style={styles.snippet}>{text}</EmojiText>;
   }
 
   const pattern = new RegExp(`(${needles.map(escapeRegExp).join('|')})`, 'ig');
@@ -100,6 +139,7 @@ function escapeRegExp(value: string): string {
 }
 
 export function DaySourceRow({ source }: { source: DaySource }) {
+  const styles = createStyles(useTheme());
   return (
     <Pressable
       onPress={() => router.push(source.href as Href)}
@@ -107,10 +147,10 @@ export function DaySourceRow({ source }: { source: DaySource }) {
       accessibilityLabel={`${source.sender} ${source.snippet}`}
       style={({ pressed }) => [styles.sourceRow, pressed && styles.sourcePressed]}>
       <View style={[styles.sourceAvatar, { backgroundColor: source.avatar.bg }]}>
-        <Ionicons name={source.avatar.name} size={18} color={source.avatar.color} />
+        <NamedIcon name={source.avatar.name} size={18} color={source.avatar.color} />
       </View>
       <View style={styles.sourceCopy}>
-        <Text style={styles.sender}>{source.sender}</Text>
+        <EmojiText style={styles.sender}>{source.sender}</EmojiText>
         <HighlightedSnippet text={source.snippet} highlights={source.highlights} />
       </View>
       <View style={styles.sourceStickers}>
@@ -122,27 +162,13 @@ export function DaySourceRow({ source }: { source: DaySource }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => StyleSheet.create({
   narrative: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     columnGap: 4,
     rowGap: 8,
-  },
-  muted: {
-    color: 'rgba(245, 242, 237, 0.42)',
-    fontFamily: Fonts.regular,
-    fontSize: 28,
-    lineHeight: 40,
-    letterSpacing: Tracking.heading,
-  },
-  strong: {
-    color: '#F6F3EE',
-    fontFamily: Fonts.bold,
-    fontSize: 28,
-    lineHeight: 40,
-    letterSpacing: Tracking.heading,
   },
   inlineSticker: {
     marginHorizontal: 2,
@@ -186,21 +212,21 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   sender: {
-    color: CREAM_INK,
+    color: theme.text,
     fontFamily: Fonts.bold,
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: Tracking.body,
   },
   snippet: {
-    color: CREAM_MUTED,
+    color: theme.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 13,
     lineHeight: 20,
     letterSpacing: Tracking.body,
   },
   snippetHit: {
-    color: CREAM_SOFT,
+    color: theme.text,
     fontFamily: Fonts.bold,
   },
   sourceStickers: {

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
@@ -10,9 +10,10 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { PressableCard } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { HeaderAddButton } from '@/components/ui/header-add-button';
 import { Pill } from '@/components/ui/pill';
 import { PRAYER_CATEGORY_LABELS, PRAYER_STATE_META, PRAYER_STATES } from '@/constants/status-colors';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ShareDraft } from '@/lib/circle-share';
 import { formatDate } from '@/lib/date';
@@ -50,11 +51,10 @@ export default function PrayerScreen() {
                   <ThemedText type="title" style={styles.title}>
                     Prayer Log
                   </ThemedText>
-                  <Pressable
+                  <HeaderAddButton
+                    accessibilityLabel="Add a prayer"
                     onPress={() => router.push('/prayer/new')}
-                    style={[styles.addButton, { backgroundColor: theme.primary }]}>
-                    <Ionicons name="add" size={24} color={theme.onPrimary} />
-                  </Pressable>
+                  />
                 </View>
                 <FlatList
                   data={['all', ...PRAYER_STATES] as (PrayerState | 'all')[]}
@@ -93,7 +93,7 @@ export default function PrayerScreen() {
                         styles.badge,
                         { backgroundColor: hexToRgba(meta.color, 0.1), borderColor: meta.color },
                       ]}>
-                      <Ionicons name={meta.icon} size={13} color={meta.color} />
+                      <NamedIcon name={meta.icon} size={13} color={meta.color} />
                       <ThemedText type="small" style={[styles.badgeText, { color: meta.color }]}>
                         {meta.label}
                       </ThemedText>
@@ -124,7 +124,7 @@ export default function PrayerScreen() {
                         });
                       }}
                       style={styles.shareCardButton}>
-                      <Ionicons
+                      <NamedIcon
                         name={(item.sharedCircleIds?.length ?? 0) > 0 ? 'people' : 'people-outline'}
                         size={18}
                         color={theme.accent}
@@ -166,17 +166,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
   title: {
+    flexShrink: 1,
     fontSize: 32,
     lineHeight: 44,
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   item: {
     gap: Spacing.one,

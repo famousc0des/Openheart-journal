@@ -1,5 +1,6 @@
 const { LogBox } = require('react-native');
 
+require('react-native-gesture-handler');
 require('react-native-reanimated');
 
 const EXPO_GO_NOTIFICATION_NOISE = [

@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { NamedIcon } from '@/components/ui/icon';
+import type { IconName } from '@/lib/icons/app';
 import { type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -16,7 +17,7 @@ export const JOURNAL_BLOB_COLORS = [
   '#6BAE9A',
 ] as const;
 
-type IonName = keyof typeof Ionicons.glyphMap;
+type IonName = IconName;
 
 const RADII = [
   {
@@ -145,7 +146,7 @@ export function JournalBlob({
                   zIndex: stickers.length - index,
                 },
               ]}>
-              <Ionicons name={sticker.name} size={16} color={sticker.color} />
+              <NamedIcon name={sticker.name} size={16} color={sticker.color} />
             </View>
           ))}
         </Pressable>
@@ -166,7 +167,7 @@ export function JournalAvatar({
   return (
     <View style={[styles.avatar, { backgroundColor: color }]}>
       {icon ? (
-        <Ionicons name={icon} size={18} color={INK} />
+        <NamedIcon name={icon} size={18} color={INK} />
       ) : (
         <Text style={styles.avatarLabel}>{label?.trim().charAt(0).toUpperCase() || '?'}</Text>
       )}

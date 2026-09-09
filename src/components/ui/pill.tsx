@@ -26,6 +26,9 @@ export function Pill({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: Boolean(active) }}
       onPress={onPress}
       style={[
         styles.pill,

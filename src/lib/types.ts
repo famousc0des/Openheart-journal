@@ -22,6 +22,7 @@ export interface JournalEntry {
   prompt?: string;
   title?: string;
   body: string;
+  pageColor?: string;
   scriptureRefs?: string[];
   sermonNoteId?: string;
 }
@@ -78,6 +79,10 @@ export interface UserCircle {
   createdAt: string;
   name: string;
   kind?: 'cord' | 'fellowship' | 'custom';
+  /** Undefined uses the circle type default; null means no limit. */
+  memberLimit?: number | null;
+  /** Optional full-bleed cover for the Circle deck. */
+  coverUri?: string;
 }
 
 export interface CircleMember {
